@@ -1,0 +1,13 @@
+{
+  "name": "validator-ops-jito-bam-boost-skill",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "bun scripts/check.ts",
+    "claim": "bun scripts/claim.ts"
+  },
+  "dependencies": {
+    "@solana/web3.js": "1.98.4"
+  },
+  "license": "MIT"
+}

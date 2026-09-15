@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validator Performance"
+  short_description: "Review validator consensus performance by epoch."
+  default_prompt: "Use $validator-performance to review the last 30 completed epochs for this Solana validator."

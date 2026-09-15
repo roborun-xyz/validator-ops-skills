@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jito BAM Boost"
+  short_description: "Check and claim validator BAM Boost rewards"
+  default_prompt: "Use $jito-bam-boost to check my validator’s claimable BAM Boost rewards."

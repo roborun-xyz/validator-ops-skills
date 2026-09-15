@@ -1,0 +1,4 @@
+interface:
+  display_name: "SFDP Check"
+  short_description: "Check SFDP participation and required versions."
+  default_prompt: "Use $sfdp-check to verify SFDP participation and software-version compliance."

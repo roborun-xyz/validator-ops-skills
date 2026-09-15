@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade Agave Backup"
+  short_description: "Safely upgrade an unstaked Agave backup validator."
+  default_prompt: "Use $upgrade-agave to prepare and execute an Agave backup-validator upgrade."

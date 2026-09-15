@@ -1,0 +1,92 @@
+---
+name: jito-bam-boost
+description: Check and claim Jito BAM Boost JitoSOL rewards for a Solana mainnet validator identity. Use when an operator asks what BAM Boost is claimable, whether a BAM allocation was claimed, or explicitly asks to claim an exact BAM reward; do not use for ordinary Jito MEV rewards.
+metadata:
+  created: 2026-08-29
+  last_updated: 2026-09-15
+---
+
+# Jito BAM Boost
+
+Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the repository root before first use.
+
+Check BAM Boost allocations read-only by default. Claim only after the operator explicitly approves the exact identity, claim epoch, and JitoSOL amount. The validator identity is the claimant, transaction signer, fee payer, and destination token-account owner.
+
+## Resolve the validator
+
+1. Use `--profile NAME` (or the selected default profile) for a current validator. If no profile is configured, follow `../inventory/SKILL.md` and resume the query. The checker verifies the live vote/identity relationship and uses that profile's RPC environment variable.
+2. Use `--identity PUBKEY` only for an explicitly identified claimant. Historical identities need not still be active validators. Host aliases are not accepted. `--profile NAME --identity PUBKEY` uses the profile's RPC environment reference but queries the explicit claimant without changing the profile.
+3. For a claim, re-check relevant live state and request the path of the identity keypair already held on the operator machine. Never retrieve a signer from a validator host or guess another operator's path.
+4. Validate the local keypair with `solana-keygen pubkey`; never print, parse, copy, or store its contents. The pubkey must equal the approved claimant identity.
+
+## Install the checker dependencies
+
+From the repository root, run `bun install --frozen-lockfile` when `node_modules` is absent. Do not replace Bun with npm or another runtime.
+
+Claims additionally require local `git`, Rust/Cargo with a linker/build toolchain, and `solana-keygen`. The wrapper builds the pinned official CLI; read-only allocation checks need only Bun and the repository dependencies. Complete dependency setup before planning a signed transaction.
+
+## Read-only check
+
+Run from the repository root:
+
+```bash
+bun .agents/skills/jito-bam-boost/scripts/check.ts \
+  --profile my-validator \
+  --format markdown
+```
+
+The checker obtains the published mainnet claim epochs from Jito's public GCS bucket, reads each Merkle allocation, derives the official distributor and Claim Status PDAs, and checks finalized state through the repository Helius RPC. A positive allocation is claimable only when all of these are true:
+
+- no Claim Status account exists;
+- the distributor account exists;
+- its JitoSOL token account exists and holds at least the allocation amount.
+
+Report raw JitoSOL and its current official JitoSOL/SOL equivalent. Keep the raw amount authoritative: claiming transfers JitoSOL, not native SOL. For historical revenue valuation by earning epoch, use `validator-revenue` instead.
+
+Use `--claim-epoch <N>` to inspect one distributor. JSON is available with `--format json`. Never infer claimability solely from an absent Claim Status: old distributors can be empty or closed.
+
+## Approval gate
+
+If nothing is claimable, report the finalized result and stop. Otherwise present one concise plan with:
+
+- UTC and Asia/Shanghai check time;
+- validator identity and validated local keypair path;
+- each claim epoch and exact amount in JitoSOL lamports and JitoSOL;
+- current official SOL equivalent and rate timestamp;
+- distributor, Claim Status, and destination JitoSOL token-account addresses;
+- identity SOL balance, and whether the destination token account already exists;
+- the pinned official CLI commit used below.
+
+Ask for explicit approval immediately before signing. Approval is valid only for the displayed identity, claim epochs, and exact lamport amounts. Re-check and request fresh approval if any allocation, address, signer, funding state, or amount changes.
+
+## Claim
+
+The bundled wrapper pins Jito's official `jito-bam-boost-cli` source to commit `1fbca8059eb13f6120b12b8b77d51dfb1013a2d6`, verifies the checkout, builds it with Cargo's lockfile, repeats the finalized preflight, and refuses to submit unless the exact approved lamport amount matches.
+
+The claim wrapper takes an explicit identity and reads `SOLANA_RPC_URL`; if discovery used a custom profile RPC variable, configure the same URL in `SOLANA_RPC_URL` locally without displaying it. After approval, claim one epoch at a time from the local operator machine:
+
+```bash
+bun .agents/skills/jito-bam-boost/scripts/claim.ts \
+  --identity "$APPROVED_IDENTITY" \
+  --claim-epoch "$APPROVED_CLAIM_EPOCH" \
+  --expected-amount-lamports "$APPROVED_AMOUNT_LAMPORTS" \
+  --keypair "$LOCAL_IDENTITY_KEYPAIR" \
+  --execute
+```
+
+Do not use the pinned CLI's `--print-tx` flag as a simulation path: that version still submits the transaction. Do not use `--skip-preflight`, SSH, a remote keypair, a different BAM program, or a non-Helius mainnet RPC.
+
+For multiple approved epochs, run them in ascending order and stop after the first failure or ambiguous result. Do not retry until the transaction signature and finalized Claim Status have been resolved.
+
+## Verify and report
+
+The wrapper requires finalized post-verification. Report:
+
+- UTC and Asia/Shanghai completion time;
+- transaction signature;
+- identity, claim epoch, and distributor;
+- JitoSOL balance before and after, with the exact delta;
+- finalized Claim Status address and state;
+- raw JitoSOL claimed and the current SOL equivalent used for display.
+
+If submission succeeds but post-verification differs from the approved amount, report the discrepancy and stop. Never submit a compensating or duplicate transaction.

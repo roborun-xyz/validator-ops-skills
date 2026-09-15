@@ -1,0 +1,4 @@
+interface:
+  display_name: "Votex Status"
+  short_description: "Inspect current or historical Vault vote-buy bids."
+  default_prompt: "Use $votex-status to show the current Vault vote-buy epoch and bids."

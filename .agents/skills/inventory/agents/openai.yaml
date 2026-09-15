@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validator Onboarding & Inventory"
+  short_description: "Set up validator profiles and maintain fleet inventory."
+  default_prompt: "Use $inventory to set up my validator profile, then continue my requested check."
