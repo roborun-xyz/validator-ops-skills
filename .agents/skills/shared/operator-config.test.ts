@@ -82,3 +82,16 @@ test('historical queries resolve an existing zero-stake vote account without act
  expect(await verifyValidator(vote,url,call)).toEqual({voteAccount:vote,identity});
  await expect(verifyValidator(vote,url,async(u,m)=>m==='getAccountInfo'?{value:null}:call(u,m))).rejects.toThrow('existing vote account');
 });
+
+test('configuration paths expand home and reject empty overrides',async()=>{
+ const {operatorPath} = await import('./operator-config');
+ const {homedir} = await import('node:os');
+ expect(operatorPath('~/example/config.json','TEST_OPERATOR_PATH','config.json')).toBe(join(homedir(),'example/config.json'));
+ expect(()=>operatorPath('','TEST_OPERATOR_PATH','config.json')).toThrow('Empty configuration path');
+ const previous=process.env.TEST_OPERATOR_PATH;
+ try {
+  process.env.TEST_OPERATOR_PATH='';
+  expect(()=>operatorPath(undefined,'TEST_OPERATOR_PATH','config.json')).toThrow('Empty configuration path');
+  expect(operatorPath('/explicit/config.json','TEST_OPERATOR_PATH','config.json')).toBe('/explicit/config.json');
+ } finally { if(previous===undefined) delete process.env.TEST_OPERATOR_PATH; else process.env.TEST_OPERATOR_PATH=previous; }
+});

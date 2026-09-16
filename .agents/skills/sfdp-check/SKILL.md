@@ -3,10 +3,12 @@ name: sfdp-check
 description: Check Solana Foundation Delegation Program participation and required software versions for an operator's mainnet/testnet identity pair, optionally verifying host health, identity, and client version over SSH.
 metadata:
   created: 2026-05-27
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # SFDP Check
+
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
 Read `../inventory/references/fleet.md` for first-use configuration. Reuse the operator's local fleet file; never default to another operator's validators. If required identities or host information are missing, use the inventory skill to collect only those fields, save the local configuration, then resume the check.
 

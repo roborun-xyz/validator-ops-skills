@@ -19,8 +19,15 @@ export function isPublicKey(value: unknown): value is string {
   while (n > 0n) { bytes++; n >>= 8n; }
   return bytes + (value.match(/^1*/)?.[0].length ?? 0) === 32;
 }
+export function operatorPath(path: string | undefined, envName: string, filename: string): string {
+  const value = path ?? process.env[envName] ?? `${homedir()}/.config/validator-ops/${filename}`;
+  if (!value.trim()) throw new Error(`Empty configuration path: ${envName}.`);
+  if (value.startsWith('~') && value !== '~' && !value.startsWith('~/'))
+    throw new Error('Configuration paths support ~ or ~/ only; use an absolute path for another user.');
+  return resolve(value === '~' ? homedir() : value.startsWith('~/') ? `${homedir()}/${value.slice(2)}` : value);
+}
 export function configPath(path?: string): string {
-  return resolve(path ?? process.env.VALIDATOR_OPS_CONFIG ?? `${homedir()}/.config/validator-ops/config.json`);
+  return operatorPath(path, 'VALIDATOR_OPS_CONFIG', 'config.json');
 }
 export function validateConfig(value: any): Config {
   if (value?.version !== 1 || !value.profiles || typeof value.profiles !== 'object' || Array.isArray(value.profiles))

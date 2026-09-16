@@ -1,5 +1,6 @@
 import { test, expect } from 'bun:test';
 import { resolve } from 'node:path';
+import { tmpdir } from 'node:os';
 
 const root = resolve(import.meta.dir, '../../..');
 const scripts = [
@@ -18,7 +19,7 @@ for (const script of scripts) {
   delete env.SOLANA_RPC_URL;
   env.VALIDATOR_OPS_CONFIG = '/nonexistent/validator-ops-test/config.json';
   const result = Bun.spawn([process.execPath, resolve(root,'.agents/skills',script),'--help'], {
-   cwd:root, env, stdout:'pipe', stderr:'pipe',
+   cwd:tmpdir(), env, stdout:'pipe', stderr:'pipe',
   });
   const [out, err, code] = await Promise.all([new Response(result.stdout).text(), new Response(result.stderr).text(), result.exited]);
   expect(code).toBe(0);

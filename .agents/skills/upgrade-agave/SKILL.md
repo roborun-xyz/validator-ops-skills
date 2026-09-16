@@ -3,10 +3,12 @@ name: upgrade-agave
 description: Upgrade an operator-configured Agave or Jito-Agave unstaked mainnet backup, verifying its current role, isolated process lifecycle, installed binary and catchup.
 metadata:
   created: 2026-05-27
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Upgrade an Agave backup
+
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
 Apply `../shared/upgrade-runbook.md` and onboard missing instance details with `../inventory/SKILL.md`. Resolve the requested backup from operator-owned inventory; there are no default hosts, users or filesystem paths.
 
@@ -18,3 +20,5 @@ Apply `../shared/upgrade-runbook.md` and onboard missing instance details with `
 6. Wait for measured catchup and healthy local RPC. Verify network, version, unstaked identity, expected vote-account configuration, and unrelated instances. Re-check current required versions and report whether the backup is ready for its declared failover role.
 
 Do not promote the backup, change keys or voting authorization, delete ledgers, download snapshots, or stop co-located testnet services as an incidental upgrade step. Diagnose those separately when needed. An unstaked node can still be important failover infrastructure; do not describe its restart as risk-free.
+
+Read `VALIDATOR_OPS_HOST_INVENTORY` or `~/.config/validator-ops/hosts.md` first (respect an explicit operator path). This inventory includes backup instances; SFDP `fleet.json` cannot replace it. Missing or stale fields block only dependent actions; verify live roles before mutations.

@@ -3,14 +3,16 @@ name: validator-revenue
 description: Fetch Solana validator historical gross and net revenue by epoch, including voting rewards, commission rewards, Jito rewards, BAM Boost JitoSOL subsidies, voting compensation, voting fees, and Marinade bond payments when present. Use for revenue history and per-epoch income; default to the last 30 completed mainnet epochs.
 metadata:
   created: 2026-05-27
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Validator Revenue
 
-Install the workspace dependencies from the repository root with `bun install --frozen-lockfile` when `node_modules` is absent.
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
-Run from the repository root:
+Install the workspace dependencies from the resolved bundle root with `bun install --frozen-lockfile` when `node_modules` is absent.
+
+Run from the resolved bundle root:
 
 ```bash
 bun .agents/skills/validator-revenue/scripts/revenue.ts \

@@ -3,14 +3,16 @@ name: votex-status
 description: Fetch current or historical Votex/The Vault vote-buy status, including target epoch, USDC bids, bid share, acquired veV when published, and on-chain IncreaseVoteBuy fallback transactions. Use for Vault/Votex epoch and allocation questions.
 metadata:
   created: 2026-05-31
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Votex Status
 
-Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the repository root before first use.
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
-Run from the repository root:
+Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the resolved bundle root before first use.
+
+Run from the resolved bundle root:
 
 ```bash
 bun .agents/skills/votex-status/scripts/votex_status.ts <epoch|current>

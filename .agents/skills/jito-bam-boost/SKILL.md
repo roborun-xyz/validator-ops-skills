@@ -3,12 +3,14 @@ name: jito-bam-boost
 description: Check and claim Jito BAM Boost JitoSOL rewards for a Solana mainnet validator identity. Use when an operator asks what BAM Boost is claimable, whether a BAM allocation was claimed, or explicitly asks to claim an exact BAM reward; do not use for ordinary Jito MEV rewards.
 metadata:
   created: 2026-08-29
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Jito BAM Boost
 
-Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the repository root before first use.
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
+
+Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the resolved bundle root before first use.
 
 Check BAM Boost allocations read-only by default. Claim only after the operator explicitly approves the exact identity, claim epoch, and JitoSOL amount. The validator identity is the claimant, transaction signer, fee payer, and destination token-account owner.
 
@@ -21,13 +23,13 @@ Check BAM Boost allocations read-only by default. Claim only after the operator 
 
 ## Install the checker dependencies
 
-From the repository root, run `bun install --frozen-lockfile` when `node_modules` is absent. Do not replace Bun with npm or another runtime.
+From the resolved bundle root, run `bun install --frozen-lockfile` when `node_modules` is absent. Do not replace Bun with npm or another runtime.
 
 Claims additionally require local `git`, Rust/Cargo with a linker/build toolchain, and `solana-keygen`. The wrapper builds the pinned official CLI; read-only allocation checks need only Bun and the repository dependencies. Complete dependency setup before planning a signed transaction.
 
 ## Read-only check
 
-Run from the repository root:
+Run from the resolved bundle root:
 
 ```bash
 bun .agents/skills/jito-bam-boost/scripts/check.ts \

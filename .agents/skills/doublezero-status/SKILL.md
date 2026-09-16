@@ -3,10 +3,12 @@ name: doublezero-status
 description: Quickly check DoubleZero Edge client status on Solana validator hosts. Use when Codex is asked to check DoubleZero, DZ, doublezerod, DoubleZero Edge, BGP tunnel status, edge-solana-shreds multicast, DoubleZero routes, DoubleZero latency, or recent DoubleZero logs on configured validator hosts.
 metadata:
   created: 2026-06-12
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # DoubleZero Status
+
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
 ## Overview
 
@@ -18,12 +20,12 @@ Prefer the bundled helper for normal checks:
 .agents/skills/doublezero-status/scripts/check-doublezero-status.sh <SSH_ALIAS>
 ```
 
-If no hosts are supplied, use the host aliases requested by the user. For vague requests like "check dz status", resolve active mainnet primaries from the operator's own verified inventory. If none is configured, ask for the target aliases before connecting. There are no built-in fleet defaults.
+If no hosts are supplied, use the host aliases requested by the user. For vague requests like "check dz status", resolve active mainnet primaries from the operator's own verified inventory. If none is configured, ask for the target aliases before connecting. Read the default host inventory before asking for aliases. `fleet.json` covers SFDP production checks only and may omit backups; use it only when those explicitly selected instances are the intended targets. There are no built-in fleet defaults.
 
 ## Workflow
 
-1. Resolve aliases and roles from operator-owned inventory (see `../inventory/references/fleet.md`). Do not treat a bundled example or another operator's inventory as a target selection.
-2. Run the helper from the repository root with the target SSH aliases.
+1. Resolve aliases and roles from operator-owned inventory (read `VALIDATOR_OPS_HOST_INVENTORY` or `~/.config/validator-ops/hosts.md`; see `../inventory/references/hosts.md`). Do not treat a bundled example or another operator's inventory as a target selection.
+2. Run the helper from the resolved bundle root with the target SSH aliases.
 3. Report:
    - UTC and local check time. The helper defaults local time to `Asia/Shanghai`; override with `LOCAL_TIME_ZONE` when needed.
    - `doublezerod.service` active/substate, PID, restart count, and start timestamp.

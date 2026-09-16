@@ -3,10 +3,12 @@ name: marinade-bond-sweep
 description: Sweep surplus SOL from a Solana mainnet validator vote account and identity account into its existing Marinade Validator Bond using keypairs held on the local operator machine. Use when funding a validator's Marinade bond while retaining vote-account rent exemption and at least 5 SOL in the identity.
 metadata:
   created: 2026-08-24
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Marinade Bond Sweep
+
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
 Sweep a mainnet validator's vote-account and identity-account surplus into its existing Marinade bond. Run discovery, preflight, simulation, signing, submission, and verification from the local operator machine; the validator host is not a signing environment for this workflow. Use the bundled two-phase executor so independent preflight checks run in parallel and balance-only drift does not create a second approval loop. This is a production mutation: complete the read-only phase, show its exact plan, and wait for explicit operator approval before starting the execution phase.
 
@@ -48,7 +50,7 @@ Ensure the Bun global binary directory is on PATH. Preflight checks required `fu
 
 ## Phase 1: read-only preflight
 
-From the repository root, run the bundled executor without `--execute`:
+From the resolved bundle root, run the bundled executor without `--execute`:
 
 ```bash
 bun .agents/skills/marinade-bond-sweep/scripts/execute.ts \

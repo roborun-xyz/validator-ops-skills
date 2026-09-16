@@ -1,28 +1,28 @@
 #!/usr/bin/env bun
+import { inventoryStatus } from './status';
 import { readConfig, saveConfig, configPath, selectInput, verifyValidator, type Config } from '../../shared/operator-config';
 
 export async function main(args: string[]) {
   const command = args.shift() ?? 'status';
   if (command === '--help' || command === 'help') {
-    console.log('onboard.ts status|add|refresh [--config PATH] [--profile NAME] [--validator PUBKEY] [--rpc-env ENV_NAME] [--default]\nadd creates a new verified profile; refresh explicitly updates an existing profile. RPC URLs stay in environment variables.'); return;
+    console.log('onboard.ts status|add|refresh [--config PATH] [--profile NAME] [--validator PUBKEY] [--rpc-env ENV_NAME] [--default]\nadd creates a new verified profile; refresh explicitly updates an existing profile. RPC URLs stay in environment variables. status also accepts --fleet PATH and --hosts PATH and reports local validation only.'); return;
   }
   if (!['status','add','refresh'].includes(command)) throw new Error('Unknown onboarding command.');
+  let fleet: string | undefined, hosts: string | undefined;
   let path: string | undefined, name: string | undefined, target: string | undefined, rpcEnv: string | undefined, makeDefault = false;
   for (let i=0;i<args.length;i++) {
     const flag=args[i]; if (flag === '--default') {makeDefault=true;continue;}
-    if (!['--config','--profile','--validator','--rpc-env'].includes(flag)) throw new Error('Unknown onboarding option.');
+    if (!['--config','--fleet','--hosts','--profile','--validator','--rpc-env'].includes(flag)) throw new Error('Unknown onboarding option.');
     const value=args[++i]; if (!value || value.startsWith('--')) throw new Error(`Missing value for ${flag}`);
-    if (flag==='--config') path=value; else if(flag==='--profile') name=value; else if(flag==='--validator') target=value; else rpcEnv=value;
+    if (flag==='--fleet') fleet=value; else if (flag==='--hosts') hosts=value; else if (flag==='--config') path=value; else if(flag==='--profile') name=value; else if(flag==='--validator') target=value; else rpcEnv=value;
   }
+  if(command==='status') { console.log(JSON.stringify(await inventoryStatus(path, fleet, hosts),null,2)); return; }
+  if(fleet !== undefined || hosts !== undefined) throw new Error('--fleet and --hosts apply only to status.');
   let config: Config;
   try { config=await readConfig(path); }
   catch(e) {
     if (command==='add' && (e as Error).message==='Specified operator config does not exist.') config={version:1,profiles:{}};
     else throw e;
-  }
-  if(command==='status') {
-    console.log(JSON.stringify({configPath:configPath(path), ...config,
-      rpcConfigured:Object.fromEntries(Object.entries(config.profiles).map(([n,p])=>[n,Boolean(process.env[p.rpcEnv])]))},null,2));return;
   }
   if (!name || !/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Provide --profile with letters, digits, hyphens or underscores.');
   const old=Object.hasOwn(config.profiles,name)?config.profiles[name]:undefined;

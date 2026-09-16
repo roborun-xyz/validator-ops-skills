@@ -1,6 +1,6 @@
 ---
 created: 2026-03-11
-last_updated: 2026-09-15
+last_updated: 2026-09-16
 ---
 
 # Validator Operations Skills
@@ -80,3 +80,7 @@ Run `bun run validate` for the combined gate, including the release allowlist au
 The automated tests use fixtures and mocked host calls; they do not submit transactions or restart validators. Python SFDP tooling uses only the standard library. Dependencies retain their own licenses.
 
 Release preparation is tracked in [open-source readiness](docs/OPEN_SOURCE_READINESS.md). This repository starts from a clean skills-only history. Keep validator-specific inventory, configuration and operation records in a separate private repository; do not copy private history into this repository.
+
+## Use from any session directory
+
+Skills locate their complete installation from the loaded `SKILL.md` path; the session need not be a Git checkout. Follow [installed bundle and configuration](.agents/skills/shared/runtime.md) for execution paths, user-level defaults, explicit overrides and credential loading. `onboard.ts status` reports profiles, SFDP fleet and host inventory independently without network access.

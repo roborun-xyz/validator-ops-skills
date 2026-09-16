@@ -1,6 +1,6 @@
 ---
 created: 2026-09-15
-last_updated: 2026-09-15
+last_updated: 2026-09-16
 ---
 
 # Local fleet onboarding for SFDP and host checks
@@ -46,4 +46,6 @@ Create the parent directory with mode `0700` and the configuration with mode `06
 
 Resume the original SFDP check after configuration. `--api-only` makes no SSH calls and cannot establish live health, installed version, or identity. A live check compares configured identities with the host RPC response; it never silently updates the file.
 
-This schema does not establish failover readiness, signer availability, or an upgrade layout. Collect and verify those separately before a mutation. Until that migration is complete, existing upgrade skills still require a reviewed host inventory and live preflight.
+Each configured host identity must equal its SFDP group identity for that cluster. An unstaked backup with a different identity does not belong in this schema; record it in `hosts.md` instead.
+
+This schema does not establish failover readiness, signer availability, or an upgrade layout. Collect and verify those separately before a mutation. Upgrade skills require a reviewed host inventory and live preflight.

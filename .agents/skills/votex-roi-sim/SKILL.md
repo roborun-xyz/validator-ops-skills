@@ -3,12 +3,14 @@ name: votex-roi-sim
 description: Simulate Votex/The Vault vote-buy ROI for a validator gauge, including bid dilution, acquired veV, gauge-directed SOL, optional SFDP match, revenue, net profit, ROI, and break-even sizing. Use when comparing Votex bid amounts or estimating revenue from gauge-directed stake.
 metadata:
   created: 2026-06-01
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Votex ROI Simulation
 
-Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the repository root before first use.
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
+
+Set `SOLANA_RPC_URL` in the local runtime to your Helius mainnet URL. No RPC credential is bundled. Run `bun install --frozen-lockfile` from the resolved bundle root before first use.
 
 Model allocation as bid share:
 

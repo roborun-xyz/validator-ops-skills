@@ -3,10 +3,12 @@ name: upgrade-mainnet
 description: Upgrade an operator-configured Firedancer primary through a verified Agave backup, preserving single-validator voting and fresh-tower requirements across failover and failback.
 metadata:
   created: 2026-05-27
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Upgrade mainnet Firedancer with an Agave backup
+
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
 Apply `../shared/upgrade-runbook.md` and onboard both instances using `../inventory/SKILL.md`. This procedure requires a verified compatible Firedancer/Frankendancer primary and Agave backup for the same vote account. There are no default host pairs or identities. Do not apply it to an Agave primary or a deployment whose identity/tower compatibility is unverified.
 
@@ -40,3 +42,5 @@ Verify actual running version, primary unstaked identity, supervisor persistence
 Verify single-instance voting, vote-account identity, advancing finalized votes/non-delinquency, installed version, both supervisor states and unrelated workloads. Observe upcoming leader opportunities when available; record when no leader sample was observed. Do not delegate routine chain verification back to the user as a required manual explorer check.
 
 Report UTC/local times and durable before/after state in the operator's local record. An ambiguous promotion or failed failback requires identity and tower diagnosis, not a blind retry. Never promote either side without the fresh tower from the just-demoted voter, and never run concurrent failovers through the same backup.
+
+Read `VALIDATOR_OPS_HOST_INVENTORY` or `~/.config/validator-ops/hosts.md` first (respect an explicit operator path). This inventory includes backup instances; SFDP `fleet.json` cannot replace it. Missing or stale fields block only dependent actions; verify live roles before mutations.

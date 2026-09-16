@@ -3,10 +3,12 @@ name: inventory
 description: Set up first-use local Solana validator profiles and maintain host inventory. Use when a skill needs a validator target or RPC configuration, or when host roles, identities, paths, or failover relationships need onboarding or refresh.
 metadata:
   created: 2026-05-27
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Validator Inventory
+
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
 Use this skill to set up local validator profiles for first-time users and maintain host inventory for server operations.
 
@@ -14,7 +16,7 @@ Use this skill to set up local validator profiles for first-time users and maint
 
 Performance and revenue scripts use the shared resolver in `../shared/operator-config.ts`. They require a mainnet validator and Helius RPC; they do not require SSH or signer access. Read [profile configuration](references/profiles.md) for commands and the configuration format.
 
-1. Run `bun .agents/skills/inventory/scripts/onboard.ts status` (pass the user's `--config` if supplied). Reuse existing profiles. If several exist without a default, ask which validator the current task concerns.
+1. Run `bun .agents/skills/inventory/scripts/onboard.ts status` (pass the user's `--config` if supplied). Inspect the resolved paths and per-file status for profiles, fleet and hosts; absent unrelated files do not block the requested workflow. Reuse existing profiles. If several exist without a default, ask which validator the current task concerns.
 2. Ask only for missing information: vote account or identity, a short profile name, and the name of an environment variable containing the user's Helius RPC URL. Suggest `SOLANA_RPC_URL`. Do not ask the user to paste credentials or keys into chat; have them set the variable in the local runtime that executes the skill.
 3. Run `onboard.ts add --profile NAME --validator PUBKEY --rpc-env ENV_NAME`. It validates the mainnet genesis and resolves the current vote/identity pair through read-only RPC before saving. Add `--default` only when the user has chosen that default; one profile is automatically selectable without a default.
 4. Report the verified profile, then resume the original task with `--profile NAME`. Onboarding is not a reason to stop before completing the user's requested check.

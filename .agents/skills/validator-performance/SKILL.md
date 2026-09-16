@@ -3,12 +3,14 @@ name: validator-performance
 description: Fetch Solana validator consensus performance by epoch, including vote credits and percent of max, rank, skip rate, block production, stake, commission, MEV commission, and current delinquency. Use for validator performance reviews; default to the last 30 completed mainnet epochs.
 metadata:
   created: 2026-05-28
-  last_updated: 2026-09-15
+  last_updated: 2026-09-16
 ---
 
 # Validator Performance
 
-Run from the repository root:
+Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
+
+Run from the resolved bundle root:
 
 ```bash
 bun .agents/skills/validator-performance/scripts/performance.ts \
