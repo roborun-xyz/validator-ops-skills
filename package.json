@@ -12,7 +12,7 @@
   "scripts": {
     "test": "bun test ./.agents/skills ./tooling",
     "typecheck": "tsc --noEmit",
-    "onboard": "bun .agents/skills/inventory/scripts/onboard.ts",
+    "onboard": "bun .agents/skills/onboarding/scripts/onboard.ts",
     "performance": "bun .agents/skills/validator-performance/scripts/performance.ts",
     "revenue": "bun .agents/skills/validator-revenue/scripts/revenue.ts",
     "test:python": ".venv/bin/python -m unittest discover -s .agents/skills/sfdp-check/tests",

@@ -13,7 +13,7 @@ async function inspect(path: string): Promise<FileStatus> {
 }
 
 // Diagnostic only: never fetch RPC, SSH, write config, or print unvalidated file content.
-export async function inventoryStatus(config?: string, fleet?: string, hosts?: string) {
+export async function configurationStatus(config?: string, fleet?: string, hosts?: string) {
   const profiles = await inspect(configPath(config));
   const fleetFile = await inspect(operatorPath(fleet, 'VALIDATOR_OPS_FLEET', 'fleet.json'));
   const hostFile = await inspect(operatorPath(hosts, 'VALIDATOR_OPS_HOST_INVENTORY', 'hosts.md'));

@@ -9,7 +9,7 @@ Store operator-specific host data outside the repository, by default at `~/.conf
 
 Ask for the group name and the paired **identity** public keys. Reuse verified public information already provided in the conversation or local profiles. Do not substitute vote accounts for identities. A partial SFDP identity-pair match is not sufficient to identify a participant.
 
-For participation-only checks, create a versioned file with `hosts: []`. For live checks, also collect SSH aliases, local RPC ports, client families, expected identities, optional vote accounts, and descriptive roles. Ask only for missing fields; there are no built-in host aliases or operator identities.
+For participation-only checks, create a versioned file with `hosts: []`. For live checks, use [inventory](../../inventory/SKILL.md) to verify SSH aliases, local RPC ports, client families, expected identities, optional vote accounts, and descriptive roles, then map those facts into this schema. Ask only for missing fields; there are no built-in host aliases or operator identities.
 
 ```json
 {

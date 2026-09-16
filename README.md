@@ -27,7 +27,7 @@ bun run revenue --profile my-validator
 bun .agents/skills/jito-bam-boost/scripts/check.ts --profile my-validator
 ```
 
-The inventory skill can guide this interaction: it requests only missing inputs, verifies the mainnet identity relationship, saves a local profile, and resumes the original query. Existing profiles are reused. Multiple profiles require an explicit selection unless a default was chosen. See [profile configuration](.agents/skills/inventory/references/profiles.md).
+The onboarding skill can guide this interaction: it requests only missing inputs, verifies the mainnet identity relationship, saves a local profile, and resumes the original query. Existing profiles are reused. Multiple profiles require an explicit selection unless a default was chosen. See [profile configuration](.agents/skills/onboarding/references/profiles.md).
 
 Profiles are stored at `~/.config/validator-ops/config.json` by default, outside the repository. They hold public keys and an environment-variable name, not RPC credentials or execution approvals. Chain queries do not require SSH or signer access.
 
@@ -35,7 +35,8 @@ Profiles are stored at `~/.config/validator-ops/config.json` by default, outside
 
 | Skill | Purpose | Additional setup |
 |---|---|---|
-| `inventory` | First use and operator configuration | Public keys; environment references |
+| `onboarding` | Create or repair profiles, RPC references and SFDP identity pairs | Public keys; environment references |
+| `inventory` | Discover and refresh host, signer and failover facts | Operator-selected hosts; read-only verification |
 | `validator-performance` | Epoch performance and current status | Mainnet profile/RPC |
 | `validator-revenue` | Historical reward, fee and bond cost accounting | Mainnet profile/RPC |
 | `jito-bam-boost` | Check allocations; explicitly approved claims | Local identity signer for claims; official CLI build tools |
@@ -48,7 +49,7 @@ Profiles are stored at `~/.config/validator-ops/config.json` by default, outside
 | `upgrade-testnet` | Upgrade testnet Firedancer | Verified layout and leader maintenance window |
 | `upgrade-mainnet` | Firedancer upgrade via Agave failover | Verified compatible primary/backup and fresh towers |
 
-For SFDP, create the project virtual environment and follow [fleet onboarding](.agents/skills/inventory/references/fleet.md):
+For SFDP, create the project virtual environment and follow [fleet onboarding](.agents/skills/onboarding/references/fleet.md):
 
 ```bash
 python3 -m venv .venv

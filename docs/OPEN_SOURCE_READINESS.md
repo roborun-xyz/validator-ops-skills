@@ -1,11 +1,11 @@
 ---
 created: 2026-09-15
-last_updated: 2026-09-15
+last_updated: 2026-09-16
 ---
 
 # Open-source readiness
 
-The complete twelve-skill set has been adapted for other operators: staged onboarding, operator-owned configuration, explicit targets, local signer roles, generic upgrade runbooks, MIT licensing, pinned dependencies, contribution instructions and a clean release exporter are present.
+The complete thirteen-skill set has been adapted for other operators: staged onboarding, operator-owned configuration, explicit targets, local signer roles, generic upgrade runbooks, MIT licensing, pinned dependencies, contribution instructions and a clean release exporter are present.
 
 See [validation](VALIDATION.md) for the requirement-by-requirement evidence, first-use scenarios and operational limits. The local gate is `bun run validate`; it covers 45 Bun tests, six Python tests, TypeScript and release-file checks. Run this gate again inside the final exported tree.
 

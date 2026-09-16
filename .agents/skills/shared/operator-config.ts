@@ -81,7 +81,7 @@ export function selectInput(input: Input, config: Config, env = process.env) {
     if (!name) {
       const names = Object.keys(config.profiles);
       if (names.length === 1) name = names[0];
-      else throw new Error(names.length ? `PROFILE_REQUIRED: choose --profile (${names.join(', ')}).` : 'ONBOARDING_REQUIRED: provide a validator or create an inventory profile.');
+      else throw new Error(names.length ? `PROFILE_REQUIRED: choose --profile (${names.join(', ')}).` : 'ONBOARDING_REQUIRED: provide a validator or create a validator profile.');
     }
   }
   const p = name && Object.hasOwn(config.profiles, name) ? config.profiles[name] : undefined;
@@ -123,6 +123,6 @@ export async function resolveOperator(input: Input, call = rpcCall) {
   const selected = selectInput(input, await readConfig(input.config));
   const live = await verifyValidator(selected.target, selected.rpcUrl, call);
   if (selected.profile && !selected.explicit && live.identity !== selected.profile.identity)
-    throw new Error('PROFILE_CONFLICT: live identity changed; refresh the inventory profile before continuing.');
+    throw new Error('PROFILE_CONFLICT: live identity changed; refresh the validator profile before continuing.');
   return { ...live, rpcUrl: selected.rpcUrl };
 }

@@ -2,7 +2,7 @@ import {test,expect} from 'bun:test';
 import {mkdtemp,rm,readFile,stat} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join,resolve} from 'node:path';
-const script=resolve(import.meta.dir,'../inventory/scripts/onboard.ts');
+const script=resolve(import.meta.dir,'../onboarding/scripts/onboard.ts');
 const fixture=resolve(import.meta.dir,'fixtures/rpc-preload.ts');
 test('first-use CLI verifies and persists public fields; errors leave config intact',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'onboard-cli-'));const path=join(dir,'config.json');
@@ -50,14 +50,14 @@ test('fresh HOME defaults resolve outside cwd and profile status survives absent
  const dir=await mkdtemp(join(tmpdir(),'onboard-home-'));
  const bundle=join(dir,'installed');
  try {
-  for(const relative of ['inventory/scripts/onboard.ts','inventory/scripts/status.ts','shared/operator-config.ts'])
+  for(const relative of ['onboarding/scripts/onboard.ts','onboarding/scripts/status.ts','shared/operator-config.ts'])
    await Bun.write(join(bundle,'.agents/skills',relative),await Bun.file(resolve(import.meta.dir,'..',relative)).text());
   const home=join(dir,'operator');
   await Bun.write(join(home,'.config/validator-ops/config.json'),JSON.stringify({version:1,profiles:{}}));
   await Bun.write(join(home,'.config/validator-ops/fleet.json'),JSON.stringify({version:1,groups:{test:{mainnetBetaPubkey:'1'.repeat(32),testnetPubkey:'1'.repeat(32)}},hosts:[]}));
   const env: Record<string,string|undefined>={...process.env,HOME:home};
   delete env.VALIDATOR_OPS_CONFIG;delete env.VALIDATOR_OPS_FLEET;delete env.VALIDATOR_OPS_HOST_INVENTORY;
-  const proc=Bun.spawn([process.execPath,join(bundle,'.agents/skills/inventory/scripts/onboard.ts'),'status'],{cwd:dir,env,stdout:'pipe',stderr:'pipe'});
+  const proc=Bun.spawn([process.execPath,join(bundle,'.agents/skills/onboarding/scripts/onboard.ts'),'status'],{cwd:dir,env,stdout:'pipe',stderr:'pipe'});
   const [out,err,code]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
   expect(err).toBe('');expect(code).toBe(0);
   const files=JSON.parse(out).files;

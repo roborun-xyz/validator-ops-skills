@@ -1,6 +1,6 @@
 ---
 created: 2026-09-15
-last_updated: 2026-09-15
+last_updated: 2026-09-16
 ---
 
 # Local operator profiles
@@ -11,16 +11,16 @@ RPC URLs remain in environment variables. Configure the variable in the same she
 
 ```bash
 # Inspect local setup without network access; prints public profile fields only.
-bun .agents/skills/inventory/scripts/onboard.ts status
+bun .agents/skills/onboarding/scripts/onboard.ts status
 
 # Verify and add a profile. No SSH or signing keys required.
-bun .agents/skills/inventory/scripts/onboard.ts add --profile mine --validator <PUBLIC_KEY> --rpc-env SOLANA_RPC_URL
+bun .agents/skills/onboarding/scripts/onboard.ts add --profile mine --validator <PUBLIC_KEY> --rpc-env SOLANA_RPC_URL
 
 # Intentionally refresh identity/RPC mapping; optionally choose the default.
-bun .agents/skills/inventory/scripts/onboard.ts refresh --profile mine --default
+bun .agents/skills/onboarding/scripts/onboard.ts refresh --profile mine --default
 
 # Use a custom location, with a different RPC environment reference.
-bun .agents/skills/inventory/scripts/onboard.ts add --config /absolute/path/operator.json --profile other --validator <PUBLIC_KEY> --rpc-env OTHER_HELIUS_RPC
+bun .agents/skills/onboarding/scripts/onboard.ts add --config /absolute/path/operator.json --profile other --validator <PUBLIC_KEY> --rpc-env OTHER_HELIUS_RPC
 ```
 
 The public key may be a current vote account or identity. Mainnet `getVoteAccounts` resolves it to a unique pair, including delinquent validators. Unreachable RPC, wrong network or ambiguous/missing accounts prevents saving. Verification of a relationship is not a claim of healthy operation or SFDP eligibility.

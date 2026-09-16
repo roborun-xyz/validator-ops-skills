@@ -1,4 +1,4 @@
 interface:
-  display_name: "Validator Onboarding & Inventory"
-  short_description: "Set up validator profiles and maintain fleet inventory."
-  default_prompt: "Use $inventory to set up my validator profile, then continue my requested check."
+  display_name: "Validator Inventory"
+  short_description: "Verify host roles, paths, signers and failover layout."
+  default_prompt: "Use $inventory to verify and update my validator host inventory, then continue the requested task once the necessary facts are established."

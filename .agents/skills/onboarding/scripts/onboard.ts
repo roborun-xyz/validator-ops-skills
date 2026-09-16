@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { inventoryStatus } from './status';
+import { configurationStatus } from './status';
 import { readConfig, saveConfig, configPath, selectInput, verifyValidator, type Config } from '../../shared/operator-config';
 
 export async function main(args: string[]) {
@@ -16,7 +16,7 @@ export async function main(args: string[]) {
     const value=args[++i]; if (!value || value.startsWith('--')) throw new Error(`Missing value for ${flag}`);
     if (flag==='--fleet') fleet=value; else if (flag==='--hosts') hosts=value; else if (flag==='--config') path=value; else if(flag==='--profile') name=value; else if(flag==='--validator') target=value; else rpcEnv=value;
   }
-  if(command==='status') { console.log(JSON.stringify(await inventoryStatus(path, fleet, hosts),null,2)); return; }
+  if(command==='status') { console.log(JSON.stringify(await configurationStatus(path, fleet, hosts),null,2)); return; }
   if(fleet !== undefined || hosts !== undefined) throw new Error('--fleet and --hosts apply only to status.');
   let config: Config;
   try { config=await readConfig(path); }

@@ -1,9 +1,9 @@
 ---
 created: 2026-09-15
-last_updated: 2026-09-15
+last_updated: 2026-09-16
 ---
 
-# Host and signer onboarding
+# Host and signer inventory
 
 Use the operator-selected `VALIDATOR_OPS_HOST_INVENTORY` path or `~/.config/validator-ops/hosts.md`. This Markdown file is operator-owned and is never a bundled fleet default. Ask for missing information only; discover process layout through authorized read-only SSH when a target alias is already supplied. An explicit existing inventory path can be reused after checking its relevance and freshness.
 
@@ -29,7 +29,7 @@ Do not guess paths, assign a backup based on its hostname, or reuse an example's
 
 Maintain `created` and `last_updated` frontmatter. Create local directories as `0700` and inventory files as `0600`. Store public keys and necessary paths only; exclude secrets, RPC URLs with credentials, SSH private keys, seeds, and keypair contents. Keep the inventory outside the release tree.
 
-## First-use interaction
+## Discovery and refresh
 
 1. Resolve the requested host/instance and action. Ask for an SSH alias only if it is not already available.
 2. Read any operator inventory; discover missing process/config details read-only. Inspect configuration selectively and redact credential values. Do not dump environment files or command arguments containing tokens.

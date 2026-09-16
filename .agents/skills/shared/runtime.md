@@ -14,7 +14,7 @@ Start with the **absolute path of the loaded SKILL.md**, resolve symlinks, and t
 For example, substitute the actual loaded path before running:
 
 ```bash
-SKILL_DIR="$(dirname "$(realpath /absolute/installed/bundle/.agents/skills/inventory/SKILL.md)")"
+SKILL_DIR="$(dirname "$(realpath /absolute/installed/bundle/.agents/skills/onboarding/SKILL.md)")"
 BUNDLE_ROOT="$(cd "$SKILL_DIR/../../.." && pwd -P)"
 bun "$SKILL_DIR/scripts/onboard.ts" status
 ```
@@ -33,7 +33,7 @@ Install dependencies with `bun install --frozen-lockfile` in `BUNDLE_ROOT` when 
 
 Precedence is explicit CLI/operator path, then the corresponding environment variable, then the user-level default. `--hosts` on status inspects the file only; it does not persist the selection for later host operations. TypeScript and Python expand `~/`; prefer absolute paths for persistent overrides. Empty overrides are errors, not a request to select the current directory. Do not automatically discover project configs or choose another fleet when a selected file is missing or invalid.
 
-Run inventory's `onboard.ts status` to inspect all three resolved paths without network calls. It reports profile schema validity and whether referenced RPC variables are set, validates fleet with the SFDP schema when Python is available, and checks host Markdown readability/date fields. Status reports diagnostics even if files are missing or invalid; inspect its per-file statuses rather than treating exit code zero as readiness. No status result proves live identities, host health, backup readiness or permission to mutate.
+Run onboarding's `onboard.ts status` to inspect all three resolved paths without network calls. It reports profile schema validity and whether referenced RPC variables are set, validates fleet with the SFDP schema when Python is available, and checks host Markdown readability/date fields. Status reports diagnostics even if files are missing or invalid; inspect its per-file statuses rather than treating exit code zero as readiness. No status result proves live identities, host health, backup readiness or permission to mutate.
 
 Read only the configurations needed for the current task, reuse existing entries, and ask only for missing facts. Profiles do not need fleet or hosts. SFDP participation does not need SSH or host inventory. Upgrades require reviewed `hosts.md` plus live preflight; an SFDP fleet entry is insufficient.
 

@@ -10,7 +10,7 @@ metadata:
 
 Read [installed bundle and configuration](../shared/runtime.md) before running commands. Resolve paths from this loaded SKILL.md, not the session working directory.
 
-Read `../inventory/references/fleet.md` for first-use configuration. Reuse the operator's local fleet file; never default to another operator's validators. If required identities or host information are missing, use the inventory skill to collect only those fields, save the local configuration, then resume the check.
+Read `../onboarding/references/fleet.md` for SFDP configuration. Reuse the operator's local fleet file; never default to another operator's validators. If identity-pair configuration is missing, use `../onboarding/SKILL.md`. If live checks need host facts, use `../inventory/SKILL.md` to verify them, then map them into the fleet configuration through onboarding and resume the check.
 
 Create the project virtual environment once with `python3 -m venv .venv`. The checker uses only the Python standard library.
 

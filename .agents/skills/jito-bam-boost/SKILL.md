@@ -16,7 +16,7 @@ Check BAM Boost allocations read-only by default. Claim only after the operator 
 
 ## Resolve the validator
 
-1. Use `--profile NAME` (or the selected default profile) for a current validator. If no profile is configured, follow `../inventory/SKILL.md` and resume the query. The checker verifies the live vote/identity relationship and uses that profile's RPC environment variable.
+1. Use `--profile NAME` (or the selected default profile) for a current validator. If no profile is configured, follow `../onboarding/SKILL.md` and resume the query. The checker verifies the live vote/identity relationship and uses that profile's RPC environment variable.
 2. Use `--identity PUBKEY` only for an explicitly identified claimant. Historical identities need not still be active validators. Host aliases are not accepted. `--profile NAME --identity PUBKEY` uses the profile's RPC environment reference but queries the explicit claimant without changing the profile.
 3. For a claim, re-check relevant live state and request the path of the identity keypair already held on the operator machine. Never retrieve a signer from a validator host or guess another operator's path.
 4. Validate the local keypair with `solana-keygen pubkey`; never print, parse, copy, or store its contents. The pubkey must equal the approved claimant identity.

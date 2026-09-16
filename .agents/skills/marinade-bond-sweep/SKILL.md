@@ -38,7 +38,7 @@ Ensure the Bun global binary directory is on PATH. Preflight checks required `fu
 
 ## Resolve the validator
 
-1. Resolve the requested validator from an explicit vote account or the operator's chain profile (`../inventory/SKILL.md`). Reuse verified public keys and pass them explicitly to the executor. A profile or host key path is not evidence that a local signer is available.
+1. Resolve the requested validator from an explicit vote account or the operator's chain profile (`../onboarding/SKILL.md`). Reuse verified public keys and pass them explicitly to the executor. A profile or host key path is not evidence that a local signer is available.
 2. Re-check the vote account through Helius and derive both the live identity and current authorized-withdrawer from its finalized state. Do not use a testnet validator, an unstaked/warmup identity, a stale inventory value, or an ambiguous host.
 3. Discover these three signer roles on the local operator machine without reading keypair contents:
    - current validator identity keypair;

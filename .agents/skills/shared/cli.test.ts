@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 
 const root = resolve(import.meta.dir, '../../..');
 const scripts = [
- 'inventory/scripts/onboard.ts',
+ 'onboarding/scripts/onboard.ts',
  'validator-performance/scripts/performance.ts',
  'validator-revenue/scripts/revenue.ts',
  'jito-bam-boost/scripts/check.ts',

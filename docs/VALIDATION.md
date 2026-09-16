@@ -1,6 +1,6 @@
 ---
 created: 2026-09-15
-last_updated: 2026-09-15
+last_updated: 2026-09-16
 ---
 
 # Release acceptance and validation scope
@@ -31,7 +31,8 @@ These are manual instruction-flow reviews, supplemented by the linked code/tests
 
 | Skill | New-operator input and expected route | Failure boundary reviewed |
 |---|---|---|
-| inventory | Public vote/identity plus RPC environment name; then optional fleet/host/signer information only for the requested action | Missing/ambiguous fields are requested; credentials and key contents are never requested in chat |
+| onboarding | Public vote/identity plus RPC environment name; SFDP identity pairs when needed | Reuse existing configuration; request only missing fields; resume the original task |
+| inventory | Selected hosts and task-relevant host/signer/failover facts | Verify observations; never infer signer availability or mutation authorization from configuration |
 | validator-performance | Profile or explicit public key; return epoch performance | Missing RPC/profile fails; unresolved historical identity requests vote account |
 | validator-revenue | Same chain setup; root dependency install | Missing upstream evidence is reported/failed, not proof of receipt; allocation and claim are separate |
 | jito-bam-boost | Profile for current validator or explicit historical identity | Query needs no signer; claim needs local matching signer, exact amount, clean pinned CLI and execution intent |
