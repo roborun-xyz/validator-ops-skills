@@ -44,6 +44,8 @@
   ".agents/skills/shared/upgrade-runbook.md",
   ".agents/skills/upgrade-agave/SKILL.md",
   ".agents/skills/upgrade-agave/agents/openai.yaml",
+  ".agents/skills/upgrade-agave-primary/SKILL.md",
+  ".agents/skills/upgrade-agave-primary/agents/openai.yaml",
   ".agents/skills/upgrade-mainnet/SKILL.md",
   ".agents/skills/upgrade-mainnet/agents/openai.yaml",
   ".agents/skills/upgrade-testnet/SKILL.md",

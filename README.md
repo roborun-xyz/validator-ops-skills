@@ -1,6 +1,6 @@
 ---
 created: 2026-03-11
-last_updated: 2026-09-16
+last_updated: 2026-09-20
 ---
 
 # Validator Operations Skills
@@ -46,6 +46,7 @@ Profiles are stored at `~/.config/validator-ops/config.json` by default, outside
 | `votex-status` | Vote-buy status and on-chain fallback | Epoch and Helius RPC when chain lookup is needed |
 | `votex-roi-sim` | Bid/ROI estimates with explicit assumptions | Gauge, RPC and model inputs |
 | `upgrade-agave` | Upgrade an unstaked Agave backup | Verified host layout and current role |
+| `upgrade-agave-primary` | Agave/Jito-Agave primary upgrade via Agave failover | Verified compatible primary/backup and fresh towers |
 | `upgrade-testnet` | Upgrade testnet Firedancer | Verified layout and leader maintenance window |
 | `upgrade-mainnet` | Firedancer upgrade via Agave failover | Verified compatible primary/backup and fresh towers |
 

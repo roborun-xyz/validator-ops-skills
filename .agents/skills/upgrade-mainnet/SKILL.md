@@ -12,6 +12,8 @@ Read [installed bundle and configuration](../shared/runtime.md) before running c
 
 Apply `../shared/upgrade-runbook.md` and onboard both instances using `../inventory/SKILL.md`. This procedure requires a verified compatible Firedancer/Frankendancer primary and Agave backup for the same vote account. There are no default host pairs or identities. Do not apply it to an Agave primary or a deployment whose identity/tower compatibility is unverified.
 
+For a voting Agave/Jito-Agave primary, use [upgrade-agave-primary](../upgrade-agave-primary/SKILL.md).
+
 ## Prepare
 
 Verify both instances' actual identities, version, health, catchup, supervisor, key paths, ledger/tower format, and restart identity persistence. The backup must be unstaked, healthy, caught up, release-compatible and compliant with applicable current version requirements. Upgrade it first with `upgrade-agave` if needed. Confirm it is not carrying another validator's votes, and serialize all operations sharing that backup.
