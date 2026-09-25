@@ -1,0 +1,4 @@
+interface:
+  display_name: "DoubleZero Status"
+  short_description: "Check DoubleZero and Edge signals."
+  default_prompt: "Use $doublezero-status to check DoubleZero and Edge Solana shreds multicast status on my configured validator hosts."

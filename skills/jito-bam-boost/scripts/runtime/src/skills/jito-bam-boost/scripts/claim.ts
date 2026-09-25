@@ -1,0 +1,315 @@
+#!/usr/bin/env bun
+
+import { heliusUrl } from "../../shared/operator-config.ts";
+
+import { access, mkdir, stat } from "node:fs/promises";
+import { constants } from "node:fs";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
+import { checkBamBoost } from "./check.ts";
+
+const OFFICIAL_REPO = "https://github.com/jito-foundation/jito-bam-boost-cli.git";
+const PINNED_COMMIT = "1fbca8059eb13f6120b12b8b77d51dfb1013a2d6";
+const BAM_PROGRAM = "BoostxbPp2ENYHGcTLYt1obpcY13HE4NojdqNWdzqSSb";
+const configuredRpc = () => heliusUrl(process.env.SOLANA_RPC_URL);
+const MIN_IDENTITY_BALANCE_LAMPORTS = 10_000_000n;
+
+type Options = {
+  identity: string;
+  claimEpoch: number;
+  expectedAmountLamports: bigint;
+  keypair: string;
+  cliDir?: string;
+  execute: boolean;
+};
+
+function localIso(date: Date): string {
+  const text = new Intl.DateTimeFormat("sv-SE", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(date);
+  return `${text.replace(" ", "T")}+08:00`;
+}
+
+async function run(
+  command: string[],
+  options: { cwd?: string; stream?: boolean; env?: Record<string, string> } = {},
+) {
+  const child = Bun.spawn(command, {
+    cwd: options.cwd,
+    stdout: "pipe",
+    stderr: "pipe",
+    env: { ...process.env, ...options.env },
+  });
+  const [stdout, stderr, exitCode] = await Promise.all([
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+    child.exited,
+  ]);
+  if (options.stream) {
+    if (stdout) process.stdout.write(stdout.replaceAll(configuredRpc(), "<HELIUS_RPC>"));
+    if (stderr) process.stderr.write(stderr.replaceAll(configuredRpc(), "<HELIUS_RPC>"));
+  }
+  if (exitCode !== 0) {
+    const details = (stderr.trim() || stdout.trim()).replaceAll(
+      configuredRpc(),
+      "<HELIUS_RPC>",
+    );
+    throw new Error(
+      `${command[0]} exited with ${exitCode}: ${details}`,
+    );
+  }
+  return { stdout, stderr };
+}
+
+async function ensureOfficialCli(requestedDir?: string): Promise<string> {
+  const cliDir = requestedDir
+    ? resolve(requestedDir)
+    : join(
+        homedir(),
+        ".cache",
+        "validator-ops",
+        "jito-bam-boost-cli",
+        PINNED_COMMIT,
+      );
+  let exists = false;
+  try {
+    exists = (await stat(join(cliDir, ".git"))).isDirectory();
+  } catch {
+    exists = false;
+  }
+  if (!exists) {
+    if (requestedDir) {
+      throw new Error(`--cli-dir is not an existing git checkout: ${cliDir}`);
+    }
+    await mkdir(resolve(cliDir, ".."), { recursive: true });
+    await run(["git", "clone", "--filter=blob:none", OFFICIAL_REPO, cliDir], {
+      stream: true,
+    });
+    await run(["git", "checkout", "--detach", PINNED_COMMIT], {
+      cwd: cliDir,
+      stream: true,
+    });
+  }
+
+  const origin = (
+    await run(["git", "remote", "get-url", "origin"], { cwd: cliDir })
+  ).stdout.trim();
+  if (
+    origin !== OFFICIAL_REPO &&
+    origin !== OFFICIAL_REPO.replace(/\.git$/, "")
+  ) {
+    throw new Error(`Official CLI checkout has unexpected origin: ${origin}`);
+  }
+  const head = (
+    await run(["git", "rev-parse", "HEAD"], { cwd: cliDir })
+  ).stdout.trim();
+  if (head !== PINNED_COMMIT) {
+    throw new Error(
+      `Official CLI checkout is at ${head}; expected pinned commit ${PINNED_COMMIT}`,
+    );
+  }
+  const dirty = (await run(["git", "status", "--porcelain", "--untracked-files=all"], {cwd: cliDir})).stdout.trim();
+  if (dirty) throw new Error("Official CLI checkout contains local changes; use a clean pinned checkout");
+  await access(join(cliDir, "Cargo.lock"), constants.R_OK);
+  await run(
+    ["cargo", "build", "--release", "--locked", "-p", "jito-bam-boost-cli"],
+    { cwd: cliDir, stream: true },
+  );
+  const binary = join(cliDir, "target", "release", "jito-bam-boost-cli");
+  await access(binary, constants.X_OK);
+  return binary;
+}
+
+function parseOptions(): Options {
+  const args = process.argv.slice(2);
+  if (args.includes("--help")) {
+    console.log("Usage: bun scripts/claim.ts --identity PUBKEY --claim-epoch N --expected-amount-lamports N --keypair PATH --execute [--cli-dir PATH]\nRequires SOLANA_RPC_URL (Helius). Submits a mainnet claim only with --execute.");
+    process.exit(0);
+  }
+  let identity = "";
+  let claimEpoch: number | undefined;
+  let expectedAmountLamports: bigint | undefined;
+  let keypair = "";
+  let cliDir: string | undefined;
+  let execute = false;
+  for (let index = 0; index < args.length; index++) {
+    const arg = args[index];
+    const next = args[index + 1];
+    if (arg === "--identity" && next) {
+      identity = next;
+      index++;
+    } else if (arg === "--claim-epoch" && next && /^\d+$/.test(next)) {
+      claimEpoch = Number(next);
+      index++;
+    } else if (
+      arg === "--expected-amount-lamports" &&
+      next &&
+      /^\d+$/.test(next)
+    ) {
+      expectedAmountLamports = BigInt(next);
+      index++;
+    } else if (arg === "--keypair" && next) {
+      keypair = resolve(next);
+      index++;
+    } else if (arg === "--cli-dir" && next) {
+      cliDir = resolve(next);
+      index++;
+    } else if (arg === "--execute") {
+      execute = true;
+    } else {
+      throw new Error(`Unknown or incomplete argument: ${arg}`);
+    }
+  }
+  if (
+    !identity ||
+    claimEpoch === undefined ||
+    !Number.isSafeInteger(claimEpoch) ||
+    expectedAmountLamports === undefined ||
+    !keypair ||
+    !execute
+  ) {
+    throw new Error(
+      "Required: --identity, --claim-epoch, --expected-amount-lamports, --keypair, and --execute",
+    );
+  }
+  return {
+    identity,
+    claimEpoch,
+    expectedAmountLamports,
+    keypair,
+    cliDir,
+    execute,
+  };
+}
+
+function extractSignature(output: string): string | null {
+  const match = output.match(
+    /Transaction confirmed:\s*(?:Signature\()?['\"]?([1-9A-HJ-NP-Za-km-z]{64,90})/,
+  );
+  return match?.[1] ?? null;
+}
+
+try {
+  const options = parseOptions();
+  configuredRpc(); // Fail before reading signers or building the external CLI.
+  await access(options.keypair, constants.R_OK);
+  const keypairPubkey = (
+    await run(["solana-keygen", "pubkey", options.keypair])
+  ).stdout.trim();
+  if (keypairPubkey !== options.identity) {
+    throw new Error(
+      `Keypair pubkey ${keypairPubkey} does not match approved identity ${options.identity}`,
+    );
+  }
+
+  const binary = await ensureOfficialCli(options.cliDir);
+
+  // Keep the finalized financial preflight immediately before submission;
+  // the first Cargo build can take substantially longer than subsequent runs.
+  const before = await checkBamBoost({
+    identity: options.identity,
+    claimEpoch: options.claimEpoch,
+  });
+  const allocation = before.allocations.find(
+    (item) => item.claimEpoch === options.claimEpoch,
+  );
+  if (!allocation) {
+    throw new Error(`No positive BAM allocation for claim epoch ${options.claimEpoch}`);
+  }
+  if (allocation.status !== "claimable") {
+    throw new Error(
+      `Claim epoch ${options.claimEpoch} is ${allocation.status}, not claimable`,
+    );
+  }
+  if (BigInt(allocation.amountLamports) !== options.expectedAmountLamports) {
+    throw new Error(
+      `Allocation changed: approved ${options.expectedAmountLamports}, finalized preflight ${allocation.amountLamports}`,
+    );
+  }
+  if (BigInt(before.identityBalanceLamports) < MIN_IDENTITY_BALANCE_LAMPORTS) {
+    throw new Error(
+      `Identity balance ${before.identityBalanceLamports} lamports is below the 0.01 SOL execution floor`,
+    );
+  }
+
+  const command = [
+    binary,
+    "--rpc-url",
+    configuredRpc(),
+    "--commitment",
+    "finalized",
+    "--signer",
+    options.keypair,
+    "--jito-bam-boost-program-id",
+    BAM_PROGRAM,
+    "bam-boost",
+    "merkle-distributor",
+    "claim",
+    "--network",
+    "mainnet",
+    "--epoch",
+    String(options.claimEpoch),
+  ];
+  const submitted = await run(command, {
+    stream: true,
+    env: { RUST_LOG: "info" },
+  });
+
+  const after = await checkBamBoost({
+    identity: options.identity,
+    claimEpoch: options.claimEpoch,
+  });
+  const verified = after.allocations.find(
+    (item) => item.claimEpoch === options.claimEpoch,
+  );
+  if (!verified || verified.status !== "claimed") {
+    throw new Error(
+      "Transaction returned success, but finalized Claim Status verification did not show claimed",
+    );
+  }
+  const beforeToken = BigInt(before.destinationJitoSolBalanceLamports);
+  const afterToken = BigInt(after.destinationJitoSolBalanceLamports);
+  const delta = afterToken - beforeToken;
+  if (delta !== options.expectedAmountLamports) {
+    throw new Error(
+      `Finalized JitoSOL balance delta ${delta} does not equal approved amount ${options.expectedAmountLamports}; do not retry`,
+    );
+  }
+
+  const completedAt = new Date();
+  const combinedOutput = `${submitted.stdout}\n${submitted.stderr}`;
+  console.log(
+    JSON.stringify(
+      {
+        status: "claimed",
+        completedAtUtc: completedAt.toISOString(),
+        completedAtLocal: localIso(completedAt),
+        identity: options.identity,
+        claimEpoch: options.claimEpoch,
+        amountLamports: options.expectedAmountLamports.toString(),
+        amountJitoSol: Number(options.expectedAmountLamports) / 1_000_000_000,
+        solEquivalentAtCheck: allocation.solEquivalent,
+        transactionSignature: extractSignature(combinedOutput),
+        distributor: allocation.distributor,
+        claimStatus: allocation.claimStatus,
+        destinationJitoSolAccount: before.destinationJitoSolAccount,
+        destinationBalanceBeforeLamports: beforeToken.toString(),
+        destinationBalanceAfterLamports: afterToken.toString(),
+        destinationBalanceDeltaLamports: delta.toString(),
+        officialCliCommit: PINNED_COMMIT,
+      },
+      null,
+      2,
+    ),
+  );
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+}

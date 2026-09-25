@@ -2,6 +2,7 @@ import {test,expect} from 'bun:test';
 import {mkdtemp,writeFile,rm,symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {execFileSync} from 'node:child_process';
 import {validatePaths,auditText,inspect,exportRelease} from './release';
 
 test('release allowlist rejects traversal, private files and duplicates',()=>{
@@ -25,5 +26,17 @@ test('export includes only allowlisted content, refuses existing output and syml
   await expect(exportRelease(output,dir)).rejects.toThrow();
   await rm(join(dir,'public.txt'));await symlink(join(dir,'private.txt'),join(dir,'public.txt'));
   await expect(inspect(dir)).rejects.toThrow('Symlink');
+ } finally {await rm(dir,{recursive:true,force:true});}
+});
+
+test('Git publication audit rejects tracked files outside the reviewed allowlist', async () => {
+ const dir=await mkdtemp(join(tmpdir(),'release-git-test-'));
+ try {
+  execFileSync('git',['init','--quiet',dir]);
+  await writeFile(join(dir,'release-files.json'),JSON.stringify(['public.txt']));
+  await writeFile(join(dir,'public.txt'),'public');
+  await writeFile(join(dir,'unexpected.txt'),'not reviewed');
+  execFileSync('git',['-C',dir,'add','public.txt','unexpected.txt']);
+  await expect(inspect(dir)).rejects.toThrow('Tracked file missing from release allowlist: unexpected.txt');
  } finally {await rm(dir,{recursive:true,force:true});}
 });

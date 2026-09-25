@@ -1,6 +1,7 @@
 import {readFile, lstat, mkdir, writeFile, chmod} from 'node:fs/promises';
 import {resolve, dirname, relative, sep} from 'node:path';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 
 export const root = resolve(import.meta.dir, '..');
 export function validatePaths(files: unknown): asserts files is string[] {
@@ -18,13 +19,22 @@ export function auditText(file:string, text:string): string[] {
  if (/(?:\/Users\/[^/\s]+\/|\/Volumes\/Safe\/|\/home\/ubuntu\/)/.test(text)) errors.push('operator-specific absolute path');
  if (file.endsWith('.md')) {
   const fm=text.match(/^---\n([\s\S]*?)\n---/);
-  if (!fm || !/\bcreated: \d{4}-\d{2}-\d{2}\b/.test(fm[1]) || !/\blast_updated: \d{4}-\d{2}-\d{2}\b/.test(fm[1])) errors.push('missing Markdown creation/update dates');
+  if (!fm || !/\bcreated: ["']?\d{4}-\d{2}-\d{2}\b/.test(fm[1]) || !/\blast_updated: ["']?\d{4}-\d{2}-\d{2}\b/.test(fm[1])) errors.push('missing Markdown creation/update dates');
  }
  return errors;
 }
 export async function inspect(source=root) {
  const files:unknown=JSON.parse(await readFile(resolve(source,'release-files.json'),'utf8'));
  validatePaths(files);
+ // Publishing a Git repository must not bypass the export allowlist by adding
+ // an unrelated tracked file. Exported trees intentionally have no .git.
+ const gitMetadata = await lstat(resolve(source, '.git')).catch(() => undefined);
+ if (gitMetadata) {
+  const tracked = execFileSync('git', ['-C', source, 'ls-files', '-z'], {encoding:'utf8'}).split('\0').filter(Boolean);
+  for (const file of tracked) {
+   if (!files.includes(file) && await lstat(resolve(source,file)).catch(() => undefined)) throw new Error(`Tracked file missing from release allowlist: ${file}`);
+  }
+ }
  const contents=new Map<string,Buffer>();
  const modes=new Map<string,number>();
  for (const file of files) {

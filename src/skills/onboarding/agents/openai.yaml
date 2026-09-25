@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validator Onboarding"
+  short_description: "Configure validator profiles, RPC and SFDP identity pairs."
+  default_prompt: "Use $onboarding to configure my validator for the requested check, then continue that check."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade Mainnet Firedancer"
+  short_description: "Upgrade mainnet Firedancer through guarded failover."
+  default_prompt: "Use $upgrade-mainnet to plan a guarded Firedancer mainnet upgrade with an Agave failover."

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Votex ROI Simulator"
-  short_description: "Simulate Votex bid dilution, revenue, and ROI."
-  default_prompt: "Use $votex-roi-sim to compare candidate Votex bid sizes for RoboRun.xyz."

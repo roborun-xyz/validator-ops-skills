@@ -13,7 +13,7 @@
     "allowImportingTsExtensions": true
   },
   "include": [
-    ".agents/skills/**/*.ts",
+    "src/skills/**/*.ts",
     "tooling/**/*.ts"
   ],
   "exclude": [

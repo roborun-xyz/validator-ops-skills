@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validator Inventory"
+  short_description: "Verify host roles, paths, signers and failover layout."
+  default_prompt: "Use $inventory to verify and update my validator host inventory, then continue the requested task once the necessary facts are established."

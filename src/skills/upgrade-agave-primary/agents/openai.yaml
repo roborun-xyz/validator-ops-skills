@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade Agave Primary"
+  short_description: "Upgrade an Agave primary through verified failover."
+  default_prompt: "Use $upgrade-agave-primary to prepare and execute a mainnet Agave or Jito-Agave primary upgrade through a verified backup."

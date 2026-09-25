@@ -1,0 +1,4 @@
+interface:
+  display_name: "Validator Revenue"
+  short_description: "Calculate validator SOL revenue and BAM Boost JitoSOL by epoch."
+  default_prompt: "Use $validator-revenue to calculate the last 30 completed epochs of gross and net SOL revenue plus BAM Boost JitoSOL for this validator."

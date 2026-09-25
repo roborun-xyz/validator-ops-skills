@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upgrade Testnet Firedancer"
+  short_description: "Upgrade Firedancer on a testnet validator safely."
+  default_prompt: "Use $upgrade-testnet to plan a guarded Firedancer testnet validator upgrade."

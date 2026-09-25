@@ -1,16 +1,12 @@
 ---
 created: 2026-09-15
-last_updated: 2026-09-16
+last_updated: 2026-09-25
 ---
 
-# Open-source readiness
+# Publication readiness
 
-The complete thirteen-skill set has been adapted for other operators: staged onboarding, operator-owned configuration, explicit targets, local signer roles, generic upgrade runbooks, MIT licensing, pinned dependencies, contribution instructions and a clean release exporter are present.
+The repository contains fourteen skills with standard Agent Skills entrypoints, MIT licensing, explicit environment requirements and independently installable runtime/reference contents. Authoring source remains separate from generated publication files. Operator configuration and operational history are not required to install them.
 
-See [validation](VALIDATION.md) for the requirement-by-requirement evidence, first-use scenarios and operational limits. The local gate is `bun run validate`; it covers 45 Bun tests, six Python tests, TypeScript and release-file checks. Run this gate again inside the final exported tree.
+Run the gates in [release preparation](RELEASING.md) against the intended commit and clean exported tree. [Validation scope](VALIDATION.md) describes what the tests establish and their production limits. [Dependency audit](DEPENDENCY_AUDIT.md) records known transitive advisories rather than treating an offline test pass as a clean dependency audit.
 
-[Release preparation](RELEASING.md) creates a new directory from `release-files.json` and generates per-file SHA-256 metadata. Publish only that reviewed tree when publication is explicitly requested. Do not expose the original private repository, inventory, operational records or Git history.
-
-The remaining production conditions are deliberate runtime preflight, not missing operator defaults: the operator supplies their identities, credentials, hosts, paths and signers; checks the installed client's supported commands/tower format; and authorizes specific mutations. No test transaction or failover is required merely to install or inspect this skill set.
-
-This skills repository has a fresh Git history separate from the private operator repository. GitHub Actions validates pushes and pull requests; consult its current run status before releasing a new revision.
+Publication to GitHub, creating tags/releases and a hub's decision to list a skill are separate from preparing compatible files. Do not claim that a skill is listed solely because local installation succeeded. Private consumers should pin a published, reviewed revision and retain their own records outside this public source.

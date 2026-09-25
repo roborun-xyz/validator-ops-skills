@@ -13,19 +13,19 @@
         "typescript": "7.0.2",
       },
     },
-    ".agents/skills/jito-bam-boost": {
+    "src/skills/jito-bam-boost": {
       "name": "validator-ops-jito-bam-boost-skill",
       "dependencies": {
         "@solana/web3.js": "1.98.4",
       },
     },
-    ".agents/skills/validator-revenue": {
+    "src/skills/validator-revenue": {
       "name": "validator-ops-validator-revenue-skill",
       "dependencies": {
         "@solana/web3.js": "1.98.4",
       },
     },
-    ".agents/skills/votex-roi-sim": {
+    "src/skills/votex-roi-sim": {
       "name": "votex-roi-sim-skill",
       "dependencies": {
         "@solana/web3.js": "1.98.4",
@@ -173,11 +173,11 @@
 
     "uuid": ["uuid@8.3.2", "", { "bin": { "uuid": "dist/bin/uuid" } }, "sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg=="],
 
-    "validator-ops-jito-bam-boost-skill": ["validator-ops-jito-bam-boost-skill@workspace:.agents/skills/jito-bam-boost"],
+    "validator-ops-jito-bam-boost-skill": ["validator-ops-jito-bam-boost-skill@workspace:src/skills/jito-bam-boost"],
 
-    "validator-ops-validator-revenue-skill": ["validator-ops-validator-revenue-skill@workspace:.agents/skills/validator-revenue"],
+    "validator-ops-validator-revenue-skill": ["validator-ops-validator-revenue-skill@workspace:src/skills/validator-revenue"],
 
-    "votex-roi-sim-skill": ["votex-roi-sim-skill@workspace:.agents/skills/votex-roi-sim"],
+    "votex-roi-sim-skill": ["votex-roi-sim-skill@workspace:src/skills/votex-roi-sim"],
 
     "webidl-conversions": ["webidl-conversions@3.0.1", "", {}, "sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ=="],
 
