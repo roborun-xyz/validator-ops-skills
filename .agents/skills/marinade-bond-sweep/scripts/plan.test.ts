@@ -15,15 +15,16 @@ describe("calculateActions", () => {
     expect(plan.expectedFinalIdentity).toBe(4n * SOL);
   });
 
-  test("sweeps all vote surplus while preserving an identity below 5 SOL", () => {
-    const plan = calculateActions(1n * SOL, RENT, 4n * SOL);
+  test("rejects vote sweeps that would leave the original identity below 5 SOL", () => {
+    expect(() => calculateActions(2n * SOL, RENT, 4n * SOL)).toThrow("5 SOL hard floor");
+    expect(() => calculateActions(2n * SOL, RENT, 5n * SOL - 1n)).toThrow("5 SOL hard floor");
+  });
 
-    expect(plan.voteAction).toBe("withdraw-all");
-    expect(plan.voteTransfer).toBe(1n * SOL - RENT);
-    expect(plan.identityAction).toBe("skip-below-threshold");
+  test("can sweep vote surplus at the hard floor without spending the original identity balance", () => {
+    const plan = calculateActions(2n * SOL, RENT, 5n * SOL);
     expect(plan.identityTransfer).toBe(0n);
-    expect(plan.bondFund).toBe(1n * SOL - RENT);
-    expect(plan.expectedFinalIdentity).toBe(4n * SOL);
+    expect(plan.bondFund).toBe(2n * SOL - RENT);
+    expect(plan.expectedFinalIdentity).toBe(5n * SOL);
   });
 
   test("combines vote and identity surplus and leaves the execution reserve", () => {

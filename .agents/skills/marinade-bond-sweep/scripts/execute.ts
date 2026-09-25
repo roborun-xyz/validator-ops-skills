@@ -3,6 +3,8 @@
 import { createHash } from "node:crypto";
 import { stat } from "node:fs/promises";
 import { resolve } from "node:path";
+import { heliusUrl, rpcCall } from "../../shared/operator-config";
+import { assertFundingFloor } from "./plan";
 
 const LAMPORTS_PER_SOL = 1_000_000_000n;
 const IDENTITY_HARD_FLOOR_LAMPORTS = 5_000_000_000n;
@@ -102,11 +104,6 @@ type Preflight = {
   approvalId: string;
 };
 
-type RpcEnvelope<T> = {
-  result?: T;
-  error?: { code: number; message: string };
-};
-
 type SignatureRow = {
   signature: string;
   err: unknown;
@@ -199,20 +196,22 @@ function parseArgs(): CliArgs {
 }
 
 function requireRpcUrl(): string {
-  const rpcUrl = process.env.SOLANA_RPC_URL;
-  if (!rpcUrl) throw new Error("SOLANA_RPC_URL is required");
-  const parsed = new URL(rpcUrl);
-  if (parsed.protocol !== "https:" || parsed.hostname !== "mainnet.helius-rpc.com") {
-    throw new Error("SOLANA_RPC_URL must use the approved Helius mainnet HTTPS endpoint");
-  }
-  return rpcUrl;
+  return heliusUrl(process.env.SOLANA_RPC_URL);
 }
 
-function redactSecrets(value: string): string {
-  return value.replace(
-    /https:\/\/mainnet\.helius-rpc\.com\/\?api-key=[^\s"'\\]+/g,
-    "[HELIUS_RPC_REDACTED]",
-  );
+export function redactSecrets(value: string, rpcUrl = process.env.SOLANA_RPC_URL): string {
+  if (rpcUrl) {
+    value = value.replaceAll(rpcUrl, "[HELIUS_RPC_REDACTED]");
+    try {
+      for (const credential of new URL(rpcUrl).searchParams.values()) {
+        if (credential) {
+          value = value.replaceAll(credential, "[RPC_CREDENTIAL_REDACTED]");
+          value = value.replaceAll(encodeURIComponent(credential), "[RPC_CREDENTIAL_REDACTED]");
+        }
+      }
+    } catch { /* Invalid configured URLs are reported without echoing the input. */ }
+  }
+  return value.replace(/https?:\/\/[^\s"'\\<>]+/gi, "[URL_REDACTED]");
 }
 
 async function runCommand(command: string[], label: string): Promise<{ stdout: string; stderr: string }> {
@@ -235,18 +234,7 @@ async function runCommand(command: string[], label: string): Promise<{ stdout: s
 }
 
 async function rpc<T>(method: string, params: unknown[]): Promise<T> {
-  const response = await fetch(requireRpcUrl(), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) throw new Error(`${method} failed with HTTP ${response.status}`);
-  const body = (await response.json()) as RpcEnvelope<T>;
-  if (body.error || body.result === undefined) {
-    throw new Error(`${method} RPC error: ${body.error?.code ?? "unknown"} ${body.error?.message ?? "missing result"}`);
-  }
-  return body.result;
+  return rpcCall(requireRpcUrl(), method, params);
 }
 
 async function requireReadableFile(path: string): Promise<void> {
@@ -378,6 +366,8 @@ async function runPreflight(args: CliArgs, ceilingOverride?: bigint): Promise<Pr
     );
   }
   const proposed = BigInt(plan.bondFundLamports);
+  // Recheck even if a substituted or older planner returned an impossible sweep.
+  assertFundingFloor(BigInt(plan.identityBalanceLamports) + BigInt(plan.voteTransferLamports), proposed);
   const approvedCeilingLamports = ceilingOverride ?? proposed + DEFAULT_APPROVAL_DRIFT_LAMPORTS;
   if (proposed > approvedCeilingLamports) {
     throw new Error(`proposed funding ${proposed} exceeds approved ceiling ${approvedCeilingLamports}`);

@@ -1,18 +1,13 @@
 #!/usr/bin/env bun
 
+import { heliusUrl, rpcCall } from "../../shared/operator-config";
+
 const LAMPORTS_PER_SOL = 1_000_000_000n;
 const VOTE_THRESHOLD = 1n * LAMPORTS_PER_SOL;
 const IDENTITY_HARD_FLOOR = 5n * LAMPORTS_PER_SOL;
 const IDENTITY_EXECUTION_RESERVE = 5_001_000_000n;
 const VOTE_PROGRAM_ID = "Vote111111111111111111111111111111111111111";
 const SYSTEM_PROGRAM_ID = "11111111111111111111111111111111";
-
-type RpcResponse<T> = {
-  jsonrpc: string;
-  id: number;
-  result?: T;
-  error?: { code: number; message: string; data?: unknown };
-};
 
 type AccountInfo = {
   data: [string, string];
@@ -63,11 +58,11 @@ export type SweepActions = {
   expectedFinalIdentity: bigint;
 };
 
-function usage(): never {
+function usage(code = 2): never {
   console.error(
     "Usage: bun plan.ts --vote-account <PUBKEY> [--identity <EXPECTED_PUBKEY>] [--json] [--field <PLAN_FIELD>]",
   );
-  process.exit(2);
+  process.exit(code);
 }
 
 function readArg(name: string): string | undefined {
@@ -116,6 +111,7 @@ export function calculateActions(
   const projectedIdentityAfterVote = identityBalance + voteTransfer;
   const bondFund = voteTransfer + identityTransfer;
   const expectedFinalIdentity = projectedIdentityAfterVote - bondFund;
+  assertFundingFloor(projectedIdentityAfterVote, bondFund);
   return {
     voteAction,
     voteTransfer,
@@ -125,6 +121,13 @@ export function calculateActions(
     bondFund,
     expectedFinalIdentity,
   };
+}
+
+export function assertFundingFloor(identityBalance: bigint, funding: bigint): void {
+  if (funding < 0n || identityBalance < 0n) throw new Error("funding and identity balance must be non-negative");
+  if (funding > 0n && identityBalance - funding < IDENTITY_HARD_FLOOR) {
+    throw new Error("sweep would leave the identity below the 5 SOL hard floor; no funds may be moved under this plan");
+  }
 }
 
 function formatLocalTime(date: Date, timeZone: string): string {
@@ -147,24 +150,11 @@ function formatLocalTime(date: Date, timeZone: string): string {
 }
 
 async function rpc<T>(rpcUrl: string, method: string, params: unknown[]): Promise<T> {
-  const response = await fetch(rpcUrl, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok) {
-    throw new Error(`${method} failed with HTTP ${response.status}`);
-  }
-  const payload = (await response.json()) as RpcResponse<T>;
-  if (payload.error || payload.result === undefined) {
-    throw new Error(`${method} RPC error: ${payload.error?.code ?? "unknown"} ${payload.error?.message ?? "missing result"}`);
-  }
-  return payload.result;
+  return rpcCall(rpcUrl, method, params);
 }
 
 async function main() {
-  if (process.argv.includes("--help") || process.argv.includes("-h")) usage();
+  if (process.argv.includes("--help") || process.argv.includes("-h")) usage(0);
 
   const voteAccount = readArg("--vote-account");
   const expectedIdentity = readArg("--identity");
@@ -172,14 +162,7 @@ async function main() {
   const asJson = process.argv.includes("--json");
   if (!voteAccount) usage();
 
-  const rpcUrl = process.env.SOLANA_RPC_URL;
-  if (!rpcUrl) {
-    throw new Error("SOLANA_RPC_URL is required and must point to the repository-approved Helius mainnet RPC");
-  }
-  const parsedRpcUrl = new URL(rpcUrl);
-  if (parsedRpcUrl.protocol !== "https:" || parsedRpcUrl.hostname !== "mainnet.helius-rpc.com") {
-    throw new Error("SOLANA_RPC_URL must use the repository-approved mainnet.helius-rpc.com HTTPS endpoint");
-  }
+  const rpcUrl = heliusUrl(process.env.SOLANA_RPC_URL);
 
   const voteInfoResult = await rpc<{ context: { slot: number }; value: AccountInfo | null }>(
     rpcUrl,

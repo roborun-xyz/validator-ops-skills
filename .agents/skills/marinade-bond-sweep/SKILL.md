@@ -3,7 +3,7 @@ name: marinade-bond-sweep
 description: Sweep surplus SOL from a Solana mainnet validator vote account and identity account into its existing Marinade Validator Bond using keypairs held on the local operator machine. Use when funding a validator's Marinade bond while retaining vote-account rent exemption and at least 5 SOL in the identity.
 metadata:
   created: 2026-08-24
-  last_updated: 2026-09-16
+  last_updated: 2026-09-25
 ---
 
 # Marinade Bond Sweep
@@ -29,7 +29,8 @@ Ensure the Bun global binary directory is on PATH. Preflight checks required `fu
 - Operate only on an existing bond. Never initialize, configure, withdraw from, or otherwise change a bond.
 - Vote account: when its finalized total balance is below `1 SOL`, skip it. Otherwise withdraw `ALL` to the validator identity; Solana CLI's vote-account `ALL` semantics leave the rent-exempt minimum.
 - Identity account: evaluate its finalized balance independently before moving vote funds. The hard floor is `5 SOL`; use a `5.001 SOL` execution reserve because an active validator identity can continue paying vote fees while the transaction is simulated and finalized. Below `5 SOL`, contribute none of its original balance. At or below `5.001 SOL`, contribute none. Above `5.001 SOL`, contribute exactly `balance - 5.001 SOL`.
-- Withdraw any eligible vote surplus temporarily to the identity, then fund the bond once with `vote surplus + identity surplus`. This returns an identity that started above `5.001 SOL` to the operational reserve before concurrent vote fees; an identity that started at or below the reserve returns to its unchanged starting balance.
+- Require every nonzero sweep to leave at least `5 SOL` in the identity. If the identity starts below `5 SOL`, reject an otherwise eligible vote sweep during read-only planning, before any withdrawal. A below-floor identity with no eligible surplus can still produce a no-op result. Do not retain part of the vote surplus to top up the identity under this policy.
+- Withdraw any eligible vote surplus temporarily to the identity, then fund the bond once with `vote surplus + identity surplus`. This returns an identity that started above `5.001 SOL` to the operational reserve before concurrent vote fees; an identity that started between `5 SOL` and the reserve returns to its unchanged starting balance.
 - Use a fee-payer keypair whose pubkey differs from the validator identity. This keeps transaction fees from reducing the identity below the `5 SOL` target.
 - Never expose, print, copy, or store keypair contents. Use only keypair files already present on the local operator machine.
 - Never SSH to a validator host to discover or use a signer, and never fall back to a validator-host key path when a local signer is missing.
