@@ -107,19 +107,23 @@ async function rpc<T>(method: string, params: unknown): Promise<T> {
   return rpcCall(configuredRpc(), method, params);
 }
 
-async function rpcBatch<T>(calls: Array<{ method: string; params: unknown }>): Promise<Array<{ result?: T; error?: any }>> {
+async function rpcBatch<T>(calls: Array<{ method: string; params: unknown }>): Promise<T[]> {
   const json = await fetchJson<any[]>(configuredRpc(), {
     method: "POST",
     headers: {"content-type":"application/json"},
     body: JSON.stringify(calls.map((call,id)=>({jsonrpc:"2.0",id,method:call.method,params:call.params}))),
   });
-  if(!Array.isArray(json)) throw new Error('Invalid RPC batch response');
+  if (!Array.isArray(json) || json.length !== calls.length) {
+    throw new Error("Incomplete on-chain scan: invalid or missing RPC batch responses");
+  }
   const byId = new Map(json.map((item: any) => [item.id, item]));
+  if (byId.size !== calls.length) throw new Error("Incomplete on-chain scan: duplicate RPC batch response IDs");
   return calls.map((_, id) => {
     const item = byId.get(id) as any;
-    if (!item) throw new Error(`RPC batch missing response ${id}`);
-    if (item.error) return { error: {code:item.error.code,message:"RPC batch item failed; provider message omitted"} };
-    return { result: item.result as T };
+    if (!item || item.error || item.result === undefined || item.result === null) {
+      throw new Error(`Incomplete on-chain scan: transaction lookup ${id} failed or is unavailable; provider message omitted`);
+    }
+    return item.result as T;
   });
 }
 
@@ -306,19 +310,37 @@ async function getEpochBuyWindow(): Promise<{ start: number; end: number; curren
 
 async function fetchSignatureCandidates(start: number, end: number) {
   const signatures: any[] = [];
+  const seen = new Set<string>();
   let before: string | undefined;
+  let complete = false;
   for (let page = 0; page < maxPages; page++) {
     const pageSigs = await rpc<any[]>("getSignaturesForAddress", [
       VOTEX_PROGRAM,
       { limit: 1000, ...(before ? { before } : {}) },
     ]);
-    if (pageSigs.length === 0) break;
+    if (!Array.isArray(pageSigs)) throw new Error("Incomplete on-chain scan: invalid signature response");
+    if (pageSigs.length === 0) {
+      complete = true;
+      break;
+    }
+    for (const sig of pageSigs) {
+      if (typeof sig?.signature !== "string" || seen.has(sig.signature)) {
+        throw new Error("Incomplete on-chain scan: invalid or repeated signature while paging");
+      }
+      seen.add(sig.signature);
+    }
     signatures.push(...pageSigs);
     before = pageSigs[pageSigs.length - 1].signature;
 
     const knownTimes = pageSigs.map((sig) => sig.blockTime).filter((time) => typeof time === "number");
     const oldest = knownTimes.length ? Math.min(...knownTimes) : undefined;
-    if (oldest && oldest < start) break;
+    if (oldest !== undefined && oldest < start) {
+      complete = true;
+      break;
+    }
+  }
+  if (!complete) {
+    throw new Error(`Incomplete on-chain scan: --max-pages=${maxPages} reached before covering the epoch window; increase --max-pages and retry`);
   }
   return signatures.filter((sig) => !sig.err && (!sig.blockTime || (sig.blockTime >= start && sig.blockTime < end)));
 }
@@ -378,8 +400,12 @@ async function fetchTransactions(signatures: any[]) {
       })),
     );
     for (let j = 0; j < responses.length; j++) {
-      const tx = responses[j].result;
-      if (tx) rows.push(...parseIncreaseVoteBuyTransactions(tx, batch[j].signature));
+      const tx = responses[j];
+      if (!tx.meta || !Object.hasOwn(tx.meta, "err") || !Array.isArray(tx.transaction?.message?.accountKeys)) {
+        throw new Error("Incomplete on-chain scan: transaction response omitted execution status or account keys");
+      }
+      if (tx.meta.err !== null) continue;
+      rows.push(...parseIncreaseVoteBuyTransactions(tx, batch[j].signature));
     }
   }
   return rows;
@@ -436,6 +462,7 @@ async function buildFromOnChainTransactions() {
         ? `Stats are unpublished and no matching on-chain IncreaseVoteBuy transactions were found for epoch ${targetEpoch}.`
         : undefined,
     scanWindow: {
+      complete: true,
       startUnix: window.start,
       endUnix: window.end,
       start: fmtTime(window.start),

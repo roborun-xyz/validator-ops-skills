@@ -68,6 +68,8 @@
   ".agents/skills/votex-roi-sim/scripts/simulate.ts",
   ".agents/skills/votex-status/SKILL.md",
   ".agents/skills/votex-status/agents/openai.yaml",
+  ".agents/skills/votex-status/scripts/fixtures/offline-preload.ts",
+  ".agents/skills/votex-status/scripts/votex_status.test.ts",
   ".agents/skills/votex-status/scripts/votex_status.ts",
   ".github/workflows/validate.yml",
   ".gitignore",
