@@ -54,6 +54,7 @@
   ".agents/skills/upgrade-testnet/agents/openai.yaml",
   ".agents/skills/validator-performance/SKILL.md",
   ".agents/skills/validator-performance/agents/openai.yaml",
+  ".agents/skills/validator-performance/scripts/performance.test.ts",
   ".agents/skills/validator-performance/scripts/performance.ts",
   ".agents/skills/validator-revenue/SKILL.md",
   ".agents/skills/validator-revenue/agents/openai.yaml",

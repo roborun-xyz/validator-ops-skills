@@ -74,12 +74,12 @@ type SvtHistoryRow = {
 
 type PerfRow = {
   epoch: number;
-  stakeSol: number;
-  voteCredits: number;
+  stakeSol: number | null;
+  voteCredits: number | null;
   tvcPctOfMax: number | null;
   tvcRank: number | null;
-  blocksProduced: number;
-  leaderSlots: number;
+  blocksProduced: number | null;
+  leaderSlots: number | null;
   blockProductionPct: number | null;
   skipRatePct: number | null;
   commissionPct: number | null;
@@ -167,22 +167,26 @@ async function rpc<T>(rpcUrl: string, method: string, params: unknown[] = []): P
 }
 
 
-function toNumber(value: unknown, fallback = 0): number {
+function toNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value))) {
     return Number(value);
   }
-  return fallback;
+  return null;
 }
 
-function toLamports(value: string | number | undefined): bigint {
-  if (value === undefined) return 0n;
+function toCount(value: unknown): number | null {
+  const parsed = toNumber(value);
+  return parsed !== null && Number.isSafeInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
+function toLamports(value: unknown): bigint | null {
   if (typeof value === "number") {
-    if (!Number.isFinite(value)) return 0n;
-    return BigInt(Math.trunc(value));
+    return Number.isSafeInteger(value) && value >= 0 ? BigInt(value) : null;
   }
+  if (typeof value !== "string") return null;
   const trimmed = value.trim();
-  if (trimmed === "") return 0n;
+  if (!/^\d+$/.test(trimmed)) return null;
   return BigInt(trimmed);
 }
 
@@ -190,8 +194,11 @@ function lamportsToSol(value: bigint): number {
   return Number(value) / LAMPORTS_PER_SOL;
 }
 
-function stakeLamportsToSol(value: string | number | undefined): number {
-  return lamportsToSol(toLamports(value));
+function stakeLamportsToSol(value: unknown): number | null {
+  const lamports = toLamports(value);
+  if (lamports === null) return null;
+  const sol = lamportsToSol(lamports);
+  return Number.isFinite(sol) ? sol : null;
 }
 
 async function fetchCurrentStatus(opts: Options, voteAccount: string): Promise<CurrentStatus> {
@@ -208,9 +215,9 @@ async function fetchCurrentStatus(opts: Options, voteAccount: string): Promise<C
     const isDelinquent = result.delinquent.some((v) => v.votePubkey === voteAccount);
     return {
       isDelinquent,
-      activatedStakeSol: live.activatedStake / LAMPORTS_PER_SOL,
-      liveCommissionPct: live.commission,
-      nodePubkey: live.nodePubkey,
+      activatedStakeSol: stakeLamportsToSol(live.activatedStake),
+      liveCommissionPct: toNumber(live.commission),
+      nodePubkey: live.nodePubkey ?? null,
     };
   } catch {
     return { isDelinquent: null, activatedStakeSol: null, liveCommissionPct: null, nodePubkey: null };
@@ -249,26 +256,49 @@ async function fetchSvtHistory(
 }
 
 function parseSkipRatePct(row: SvtHistoryRow): number | null {
-  const leaderSlots = toNumber(row.leaderSlotsTotal);
-  const blocksDone = toNumber(row.leaderSlotsDone);
-  if (leaderSlots > 0) {
+  const leaderSlots = toCount(row.leaderSlotsTotal);
+  const blocksDone = toCount(row.leaderSlotsDone);
+  if (leaderSlots !== null && blocksDone !== null && leaderSlots > 0 && blocksDone <= leaderSlots) {
     return ((leaderSlots - blocksDone) / leaderSlots) * 100;
   }
   if (row.skippedSlots !== undefined && row.skippedSlots !== null && row.skippedSlots !== "") {
     const skipped = toNumber(row.skippedSlots);
-    if (skipped >= 0 && skipped <= 1) return skipped * 100;
-    if (skipped > 1 && skipped <= 100) return skipped;
+    if (skipped !== null && skipped >= 0 && skipped <= 1) return skipped * 100;
+    if (skipped !== null && skipped > 1 && skipped <= 100) return skipped;
   }
   return null;
 }
 
 function tvcPctOfMax(row: SvtHistoryRow): number | null {
-  const credits = toNumber(row.tvCredits);
-  if (credits <= 0) return null;
-  const slots = toNumber(row.slotsInEpoch, DEFAULT_SLOTS_PER_EPOCH);
+  const credits = toCount(row.tvCredits);
+  if (credits === null) return null;
+  const slots = row.slotsInEpoch === undefined ? DEFAULT_SLOTS_PER_EPOCH : toCount(row.slotsInEpoch);
+  if (slots === null) return null;
   const max = slots * MAX_TVC_PER_SLOT;
   if (max <= 0) return null;
   return (credits / max) * 100;
+}
+
+export function normalizePerformanceRow(row: SvtHistoryRow): PerfRow {
+  const leaderSlots = toCount(row.leaderSlotsTotal);
+  const blocksProduced = toCount(row.leaderSlotsDone);
+  const blockProductionPct =
+    leaderSlots !== null && blocksProduced !== null && leaderSlots > 0 && blocksProduced <= leaderSlots
+      ? (blocksProduced / leaderSlots) * 100 : null;
+  const mevCommission = toNumber(row.mevCommission);
+  return {
+    epoch: row.epoch,
+    stakeSol: stakeLamportsToSol(row.totalStake),
+    voteCredits: toCount(row.tvCredits),
+    tvcPctOfMax: tvcPctOfMax(row),
+    tvcRank: toCount(row.tvcRank),
+    blocksProduced,
+    leaderSlots,
+    blockProductionPct,
+    skipRatePct: parseSkipRatePct(row),
+    commissionPct: toNumber(row.fee),
+    mevCommissionPct: mevCommission === null ? null : mevCommission / 100,
+  };
 }
 
 async function collectRows(opts: Options, voteAccount: string): Promise<{
@@ -290,26 +320,7 @@ async function collectRows(opts: Options, voteAccount: string): Promise<{
     fetchCurrentStatus(opts, voteAccount),
   ]);
 
-  const rows = svtRows.map((row) => {
-    const leaderSlots = Math.round(toNumber(row.leaderSlotsTotal));
-    const blocksProduced = Math.round(toNumber(row.leaderSlotsDone));
-    const blockProductionPct =
-      leaderSlots > 0 ? (blocksProduced / leaderSlots) * 100 : null;
-    return {
-      epoch: row.epoch,
-      stakeSol: stakeLamportsToSol(row.totalStake),
-      voteCredits: Math.round(toNumber(row.tvCredits)),
-      tvcPctOfMax: tvcPctOfMax(row),
-      tvcRank: row.tvcRank ?? null,
-      blocksProduced,
-      leaderSlots,
-      blockProductionPct,
-      skipRatePct: parseSkipRatePct(row),
-      commissionPct: row.fee === undefined ? null : toNumber(row.fee),
-      mevCommissionPct:
-        row.mevCommission === undefined ? null : toNumber(row.mevCommission) / 100,
-    };
-  });
+  const rows = svtRows.map(normalizePerformanceRow);
 
   return {
     currentEpoch,
@@ -328,8 +339,9 @@ function average(values: Array<number | null>): number | null {
   return filtered.reduce((a, b) => a + b, 0) / filtered.length;
 }
 
-function sum(values: number[]): number {
-  return values.reduce((a, b) => a + b, 0);
+function sum(values: Array<number | null>): number | null {
+  if (values.some((value) => value === null)) return null;
+  return (values as number[]).reduce((a, b) => a + b, 0);
 }
 
 function fmtPct(value: number | null, digits = 2): string {
@@ -352,7 +364,7 @@ function fmtRank(value: number | null): string {
   return `#${Math.round(value).toLocaleString("en-US")}`;
 }
 
-function renderMarkdown(result: {
+export function renderMarkdown(result: {
   voteAccount: string;
   currentEpoch: number;
   currentSlotIndex: number;
@@ -396,7 +408,7 @@ function renderMarkdown(result: {
 
   for (const row of result.rows) {
     lines.push(
-      `| ${row.epoch} | ${fmtInt(row.stakeSol)} | ${fmtInt(row.voteCredits)} | ${fmtPct(row.tvcPctOfMax)} | ${fmtRank(row.tvcRank)} | ${row.blocksProduced}/${row.leaderSlots} | ${fmtPct(row.blockProductionPct)} | ${fmtPct(row.skipRatePct)} | ${fmtPct(row.commissionPct, 0)} | ${fmtPct(row.mevCommissionPct, 0)} |`,
+      `| ${row.epoch} | ${fmtInt(row.stakeSol)} | ${fmtInt(row.voteCredits)} | ${fmtPct(row.tvcPctOfMax)} | ${fmtRank(row.tvcRank)} | ${fmtInt(row.blocksProduced)}/${fmtInt(row.leaderSlots)} | ${fmtPct(row.blockProductionPct)} | ${fmtPct(row.skipRatePct)} | ${fmtPct(row.commissionPct, 0)} | ${fmtPct(row.mevCommissionPct, 0)} |`,
     );
   }
 
@@ -411,6 +423,8 @@ function renderMarkdown(result: {
 
   lines.push(
     "",
+    "Unavailable values are shown as —. Averages use available epochs; totals require data for every epoch in the window.",
+    "",
     `Window summary (epochs \`${result.firstEpoch}-${result.lastEpoch}\`):`,
     "",
     `- Total vote credits: \`${fmtInt(totalCredits)}\``,
@@ -424,7 +438,7 @@ function renderMarkdown(result: {
   return lines.join("\n");
 }
 
-function renderCsv(rows: PerfRow[]): string {
+export function renderCsv(rows: PerfRow[]): string {
   const header = [
     "epoch",
     "stake_sol",
@@ -441,7 +455,7 @@ function renderCsv(rows: PerfRow[]): string {
   const body = rows.map((row) =>
     [
       row.epoch,
-      row.stakeSol.toFixed(2),
+      row.stakeSol === null ? "" : row.stakeSol.toFixed(2),
       row.voteCredits,
       row.tvcPctOfMax === null ? "" : row.tvcPctOfMax.toFixed(4),
       row.tvcRank ?? "",
@@ -470,7 +484,9 @@ async function main() {
   else console.log(renderMarkdown({ voteAccount, ...result }));
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : String(err));
-  process.exit(1);
-});
+if (import.meta.main) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : String(err));
+    process.exit(1);
+  });
+}
