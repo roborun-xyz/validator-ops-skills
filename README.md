@@ -1,9 +1,9 @@
 ---
 created: 2026-03-11
-last_updated: 2026-09-25
+last_updated: 2026-09-26
 ---
 
-# Validator Operations Skills
+# Solana Validator Skills
 
 Agent Skills for Solana validator monitoring, reward checks, bond funding and supervised upgrades. MIT licensed. Operator configuration, credentials, hosts and signers are supplied locally; none is distributed as a working default.
 
@@ -12,8 +12,8 @@ Agent Skills for Solana validator monitoring, reward checks, bond funding and su
 Each directory in [skills](skills/onboarding/SKILL.md) is independently installable and contains its referenced instructions, runtime helpers, dependency lock and license. Install only the workflows you need:
 
 ```bash
-bunx --bun skills@1.7.0 add roborun-xyz/validator-ops-skills --list
-bunx --bun skills@1.7.0 add roborun-xyz/validator-ops-skills --skill onboarding validator-performance --agent codex
+bunx --bun skills@1.7.0 add roborun-xyz/sol-validator-skills --list
+bunx --bun skills@1.7.0 add roborun-xyz/sol-validator-skills --skill onboarding validator-performance --agent codex
 ```
 
 The equivalent `npx skills@1.7.0 add ...` command requires the skills CLI's Node.js prerequisite. Choose another supported agent with `--agent`; add `--global` only for a user-wide installation. Other Agent Skills clients can copy an individual `skills/<name>` directory. Its runtime stays inside that directory and survives removal of the installer's temporary clone.
@@ -54,8 +54,8 @@ Historical figures and ROI estimates depend on source availability and assumptio
 ## Develop or use a pinned checkout
 
 ```bash
-git clone https://github.com/roborun-xyz/validator-ops-skills.git
-cd validator-ops-skills
+git clone https://github.com/roborun-xyz/sol-validator-skills.git
+cd sol-validator-skills
 bun install --frozen-lockfile
 python3 -m venv .venv
 bun run onboard --help
