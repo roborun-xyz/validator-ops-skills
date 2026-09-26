@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "validator-ops-skills",
+      "name": "sol-validator-skills",
       "dependencies": {
         "@solana/web3.js": "1.98.4",
       },

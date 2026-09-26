@@ -1,6 +1,6 @@
 ---
 created: 2026-09-16
-last_updated: 2026-09-25
+last_updated: 2026-09-26
 ---
 
 # Installed skill and operator configuration
@@ -9,7 +9,7 @@ This skill includes its runtime and referenced workflows. It works when copied a
 
 ## Locate execution paths
 
-Resolve symlinks on the absolute path of the loaded SKILL.md and use its containing directory as SKILL_DIR. The bundled runtime is at SKILL_DIR/scripts/runtime. Verify its package.json has name validator-ops-skills.
+Resolve symlinks on the absolute path of the loaded SKILL.md and use its containing directory as SKILL_DIR. The bundled runtime is at SKILL_DIR/scripts/runtime. Verify its package.json has name sol-validator-skills.
 
 ```bash
 SKILL_DIR="$(dirname "$(realpath /absolute/installed/skill/SKILL.md)")"

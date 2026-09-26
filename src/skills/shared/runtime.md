@@ -1,15 +1,15 @@
 ---
 created: 2026-09-16
-last_updated: 2026-09-25
+last_updated: 2026-09-26
 ---
 
 # Installed bundle and operator configuration
 
-These skills ship as a complete `validator-ops-skills` bundle: `src/skills/*`, shared code, root `package.json`/`bun.lock`, and optional `.venv`. A copied individual skill directory is not a standalone installation.
+These skills ship as a complete `sol-validator-skills` bundle: `src/skills/*`, shared code, root `package.json`/`bun.lock`, and optional `.venv`. A copied individual skill directory is not a standalone installation.
 
 ## Locate execution paths
 
-Start with the **absolute path of the loaded SKILL.md**, resolve symlinks, and take its containing directory as `SKILL_DIR`. In the supported layout, `BUNDLE_ROOT` is three directories above `SKILL_DIR`. Verify `BUNDLE_ROOT/package.json` has name `validator-ops-skills` and that the referenced script/shared files exist. If the layout is incomplete, report the missing bundle and restore/install the full bundle; do not search the session directory for a similarly named script or run an unrelated project's commands.
+Start with the **absolute path of the loaded SKILL.md**, resolve symlinks, and take its containing directory as `SKILL_DIR`. In the supported layout, `BUNDLE_ROOT` is three directories above `SKILL_DIR`. Verify `BUNDLE_ROOT/package.json` has name `sol-validator-skills` and that the referenced script/shared files exist. If the layout is incomplete, report the missing bundle and restore/install the full bundle; do not search the session directory for a similarly named script or run an unrelated project's commands.
 
 For example, substitute the actual loaded path before running:
 
